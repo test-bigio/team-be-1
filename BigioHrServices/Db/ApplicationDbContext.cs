@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using BigioHrServices.Db.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace BigioHrServices.Db
 {
@@ -8,5 +9,6 @@ namespace BigioHrServices.Db
         {
 
         }
+        public DbSet<Employee> Employees { get; set; }
     }
 }
