@@ -39,5 +39,15 @@ namespace BigioHrServices.Controllers
 
             return new BaseResponse();
         }
+
+        [HttpPut("Update")]
+        public BaseResponse UpdateEmployee([FromBody] EmployeeAddRequest request)
+        {
+            if (request == null) throw new Exception(RequestNull);
+
+            _employeeService.EmployeeUpdate(request);
+
+            return new BaseResponse();
+        }
     }
 }

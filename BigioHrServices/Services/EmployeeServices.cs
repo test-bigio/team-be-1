@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Globalization;
 using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 
 namespace BigioHrServices.Services
 {
@@ -15,6 +16,7 @@ namespace BigioHrServices.Services
         public DatatableResponse GetList(EmployeeSearchRequest request);
         public EmployeeResponse GetEmployeeByNIK(string nik);
         public void EmployeeAdd(EmployeeAddRequest request);
+        public void EmployeeUpdate(EmployeeAddRequest request);
     }
     public class EmployeeServices : IEmployeeService
     {
@@ -26,14 +28,15 @@ namespace BigioHrServices.Services
 
         public DatatableResponse GetList(EmployeeSearchRequest request)
         {
+
             var query = _db.Employees
-                .Where(p => 
-                    p.NIK.ToLower() == request.Search.ToLower() ||
-                    p.Name.ToLower() == request.Search.ToLower())
-                .Where(p => p.IsActive == request.IsActive)
+                //.Where(p => p.IsActive == request.IsActive)
                 .AsNoTracking()
                 .AsQueryable();
-
+            if (!string.IsNullOrEmpty(request.Search))
+            {
+                query = query.Where(p => p.NIK.ToLower() == request.Search.ToLower() || p.Name.ToLower() == request.Search.ToLower());
+            }
             if (!string.IsNullOrEmpty(request.JoinDateRangeBegin))
             {
                 query = query.Where(p => p.JoinDate > DateOnly.ParseExact(request.JoinDateRangeBegin, "yyyy-MM-dd"));
@@ -50,16 +53,17 @@ namespace BigioHrServices.Services
                     NIK = _employee.NIK,
                     Name = _employee.Name,
                     Sex = _employee.Sex,
-                    JoinDate = _employee.JoinDate,
+                    //JoinDate = _employee.JoinDate,
                     WorkLength = _employee.WorkLength,
                     Position = _employee.Position,
                     IsActive = _employee.IsActive,
                     DigitalSignature = _employee.DigitalSignature,
                 })
                 .ToList();
+
             return new DatatableResponse()
             {
-                Data = data.Skip(request.PageSize * request.Page).Take(request.PageSize),
+                Data = data.ToArray(),
                 TotalRecords = data.Count,
                 PageSize = request.PageSize > data.Count ? data.Count : request.PageSize,
                 NextPage = (request.PageSize * request.Page) < data.Count,
@@ -77,14 +81,13 @@ namespace BigioHrServices.Services
                     NIK = _employee.NIK,
                     Name = _employee.Name,
                     Sex = _employee.Sex,
-                    JoinDate = _employee.JoinDate,
+                    //JoinDate = _employee.JoinDate,
                     WorkLength = _employee.WorkLength,
                     Position = _employee.Position,
                     IsActive = _employee.IsActive,
                     DigitalSignature = _employee.DigitalSignature,
                 })
                 .FirstOrDefault();
-
             /*if (data == null) throw new Exception("NIK tidak ada!");
             return data;*/
         }
@@ -106,7 +109,9 @@ namespace BigioHrServices.Services
                     Sex = request.Sex,
                     JoinDate = DateOnly.ParseExact(request.JoinDate, "yyyy-MM-dd"),
                     WorkLength = request.WorkLength,
-                    Position = request.Position
+                    Position = request.Position,
+                    Password = "Pegawai",
+                    DigitalSignature = "101010"
                 });
                 _db.SaveChanges();
             }
@@ -114,6 +119,40 @@ namespace BigioHrServices.Services
             {
                 throw;
             }
+        }
+
+        public void EmployeeUpdate(EmployeeAddRequest request)
+        {
+            //if (data != null) throw new Exception("NIK sudah ada!");
+            var data = _db.Employees.SingleOrDefault(p => p.NIK == request.NIK);
+            if (data != null)
+            {
+                try
+                {
+                    data.Name = request.Name;
+                    data.Sex = request.Sex;
+                    data.JoinDate = DateOnly.ParseExact(request.JoinDate, "yyyy-MM-dd");
+                    data.WorkLength = request.WorkLength;
+                    data.Position = request.Position;
+                    //_db.Employees.Add(new Employee
+                    //{
+                    //    NIK = request.NIK,
+                    //    Name = request.Name,
+                    //    Sex = request.Sex,
+                    //    JoinDate = DateOnly.ParseExact(request.JoinDate, "yyyy-MM-dd"),
+                    //    WorkLength = request.WorkLength,
+                    //    Position = request.Position,
+                    //    Password = "Pegawai",
+                    //    DigitalSignature = "101010"
+                    //});
+                    _db.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    throw;
+                }
+            }
+           
         }
     }
 }
