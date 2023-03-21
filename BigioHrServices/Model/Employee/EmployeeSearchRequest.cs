@@ -4,8 +4,8 @@ namespace BigioHrServices.Model.Employee
 {
     public class EmployeeSearchRequest : DatatableRequest
     {
-        public string JoinDateRangeBegin { get; set; } = string.Empty;
-        public string JoinDateRangeEnd { get; set; } = string.Empty;
+        public string JoinDateRangeBegin { get; set; }
+        public string JoinDateRangeEnd { get; set; }
         public bool IsActive { get; set; } = true;
     }
 }
