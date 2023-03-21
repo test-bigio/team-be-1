@@ -15,8 +15,10 @@ namespace BigioHrServices.Services
     {
         public DatatableResponse GetList(EmployeeSearchRequest request);
         public EmployeeResponse GetEmployeeByNIK(string nik);
+        public SingleReponse GetDetail(string nik);
         public void EmployeeAdd(EmployeeAddRequest request);
         public void EmployeeUpdate(EmployeeAddRequest request);
+        public void EmployeeDelete(string nik);
     }
     public class EmployeeServices : IEmployeeService
     {
@@ -92,6 +94,33 @@ namespace BigioHrServices.Services
             return data;*/
         }
 
+        public SingleReponse GetDetail(string nik)
+        {
+
+            var query = _db.Employees
+                .Where(p => p.NIK == nik)
+                .AsNoTracking()
+                .AsQueryable();
+
+            var data = query
+                .Select(_employee => new EmployeeResponse
+                {
+                    NIK = _employee.NIK,
+                    Name = _employee.Name,
+                    Sex = _employee.Sex,
+                    //JoinDate = _employee.JoinDate,
+                    WorkLength = _employee.WorkLength,
+                    Position = _employee.Position,
+                    IsActive = _employee.IsActive,
+                    DigitalSignature = _employee.DigitalSignature,
+                })
+                .ToList();
+
+            return new SingleReponse()
+            {
+                Data = data.ToArray()
+            };
+        }
         public void EmployeeAdd(EmployeeAddRequest request)
         {
             var data = _db.Employees
@@ -111,8 +140,9 @@ namespace BigioHrServices.Services
                     WorkLength = request.WorkLength,
                     Position = request.Position,
                     Password = "Pegawai",
-                    DigitalSignature = "101010"
-                });
+                    DigitalSignature = "101010",
+                    IsActive = true
+                }); ;
                 _db.SaveChanges();
             }
             catch (Exception ex)
@@ -152,7 +182,23 @@ namespace BigioHrServices.Services
                     throw;
                 }
             }
-           
+
+        }
+
+        public void EmployeeDelete(string nik)
+        {
+            var data = _db.Employees.SingleOrDefault(p => p.NIK == nik);
+            if (data == null) throw new Exception("NIK Tidak Ditemukan!");
+
+            try
+            {
+                data.IsActive = false;
+                _db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
     }
 }

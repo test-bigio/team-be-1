@@ -6,7 +6,6 @@ using BigioHrServices.Utilities;
 
 namespace BigioHrServices.Db.Entities
 {
-    //[Table("employee")]
     public class Employee
     {
         public Employee()
@@ -34,13 +33,12 @@ namespace BigioHrServices.Db.Entities
         public string Position { get; set; } = string.Empty;
         [Required]
         [Column("is_active")]
-        public bool IsActive { get; set; } = true;
+        public bool IsActive { get; set; }
         [Required]
         [Column("password")]
         public string Password { get; set; }
         [Required]
         [Column("digital_signature")]
         public string DigitalSignature { get; set; }
-
     }
 }
