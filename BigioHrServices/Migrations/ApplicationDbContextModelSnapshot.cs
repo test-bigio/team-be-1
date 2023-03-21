@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace BigioHrServices.Migrations
+namespace BigioHrServices.Db.Entities
 {
     [DbContext(typeof(ApplicationDbContext))]
     partial class ApplicationDbContextModelSnapshot : ModelSnapshot
@@ -68,7 +68,7 @@ namespace BigioHrServices.Migrations
 
                     b.HasKey("NIK");
 
-                    b.ToTable("Employees", (string)null);
+                    b.ToTable("Employees");
                 });
 #pragma warning restore 612, 618
         }
