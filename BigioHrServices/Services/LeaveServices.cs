@@ -21,18 +21,23 @@ namespace BigioHrServices.Services
 	{
         private readonly ApplicationDbContext _db;
         private readonly int maxLeave = 12;
+        private readonly int maxLeaveForHighestPosition = 2;
+        private readonly IEmployeeService _employeeService;
+        private readonly IPositionService _positionService;
 
-        public LeaveService(ApplicationDbContext db)
+        public LeaveService(ApplicationDbContext db, IEmployeeService employeeService, IPositionService positionService)
 		{
 			_db = db;
-		}
+            _employeeService = employeeService;
+            _positionService = positionService;
+
+        }
 
         public void Approve(int id)
         {
-            // todo logic melimpahkan
             var leave = _getLeaveDataOrFail(id);
 
-            if (!leave.IsAlreadyReviewed())
+            if (leave.IsAlreadyReviewed())
             {
                 throw new Exception("Request already reviewed");
             }
@@ -133,35 +138,45 @@ namespace BigioHrServices.Services
         }
         public void AddNewLeaveRequest(AddNewLeaveRequest request)
         {
-            // todo validasi matrik pelimpahan
-            
-            // todo get this flag from position
-            var currentUserHaveHighestPosition = false;
-
-            if (currentUserHaveHighestPosition)
+            // validasi matrix pelimpahan
+            var delegationList = _db.Delegations
+                .Where(x => x.ParentNIK == request.EmployeeNik)
+                .ToList();
+            if (delegationList.Count < 1)
             {
-                // todo if user have highest position then max quota permonth = 2
+                throw new Exception("Employee don't have delegation list");
+            }
+            if (delegationList.Find(x => x.NIK == request.DelegatedNiK) == null)
+            {
+                throw new Exception("Delegated employee not exist in delegation list");
+            }
+            
+            // get reviewer
+            var reviewer = _getReviewerForNik(request.EmployeeNik);
+
+            var isRequestingUserHaveHighestPosition = reviewer == null;
+
+            if (isRequestingUserHaveHighestPosition)
+            {
+                if (_getLeaveQuotaForHighestPosition(request.EmployeeNik) < 1)
+                {
+                    throw new Exception("Insufficient leave quota");
+                }
             }
             else
             {
-                var quotaResponse = GetLeaveQuota(request.EmployeeNIk);
+                var quotaResponse = GetLeaveQuota(request.EmployeeNik);
                 if (quotaResponse.LeaveAvailable < 1)
                 {
                     throw new Exception("Insufficient leave quota");
                 }
             }
 
-            var reviewerNik = "SYSTEM";
-            if (!currentUserHaveHighestPosition)
-            {
-                var reviewer = _getReviewerForNik(request.EmployeeNIk);
-                reviewerNik = reviewer.NIK;
-            }
             var leaveData = new Leave
             {
-                StafNIK = request.EmployeeNIk,
-                DelegatedStafNIK = request.DelegatedNIK,
-                ReviewerNIK = reviewerNik,
+                StafNIK = request.EmployeeNik,
+                DelegatedStafNIK = request.DelegatedNiK,
+                ReviewerNIK = isRequestingUserHaveHighestPosition ? "SYSTEM" : reviewer.NIK,
                 Status = Leave.RequestStatus.InReview,
                 LeaveDate = DateOnly.FromDateTime(request.LeaveDate),
                 CreatedAt = DateTime.Now,
@@ -181,16 +196,59 @@ namespace BigioHrServices.Services
             _db.Notifications.Add(notification);
             _db.SaveChanges();
 
-            if (currentUserHaveHighestPosition)
+            if (isRequestingUserHaveHighestPosition)
             {
-                // todo: still not test this implementation
-                // Approve(leaveData.Id);
+                Approve(leaveData.Id);
             }
         }
-        private Employee _getReviewerForNik(string currentUserNik)
+        private int _getLeaveQuotaForHighestPosition(string requestEmployeeNik)
         {
-            // todo implement get reviewer for nik
-            return new Employee { NIK = "69123" };
+            int currentYear = DateTime.Now.Year;
+            int currentMonth = DateTime.Now.Month;
+            DateOnly firstDay = new DateOnly(currentYear, currentMonth, 1);
+            DateOnly lastDay = new DateOnly(currentYear, currentMonth, DateTime.DaysInMonth(currentYear, currentMonth));
+
+            //get employee quota, base on current year 
+            var nUsedLeave = _db.Leaves
+                .Where(leave => leave.StafNIK == requestEmployeeNik)
+                .Where(leave => leave.Status == Db.Entities.Leave.RequestStatus.Approved)
+                .Where(leave => leave.LeaveDate >= firstDay && leave.LeaveDate <= lastDay)
+                .ToList()
+                .Count();
+            return nUsedLeave - maxLeaveForHighestPosition;
+        }
+        private Employee? _getReviewerForNik(string nik)
+        {
+            var requestingUser = _employeeService.GetEmployeeByNIK(nik);
+            if (requestingUser == null)
+            {
+                throw new Exception("request employee data not found");
+            }
+            var position = _positionService.GetPositionByCode(requestingUser.PositionCode.ToLower());
+            if (position == null)
+            {
+                throw new Exception("Unexpected error");
+            }
+            var iPositionLevel = Convert.ToInt32(position.Level);
+            // get higher position (have lower number)
+            var reviewerPosition = _db.Positions
+                .AsNoTracking()
+                .Where(x => Convert.ToInt32(x.Level) < iPositionLevel)
+                .OrderByDescending(x => Convert.ToInt32(x.Level))
+                .FirstOrDefault();
+            if (reviewerPosition == null)
+            {
+                // position is highest
+                return null;
+            }
+            var reviewer = _db.Employees
+                .AsNoTracking()
+                .FirstOrDefault(x => x.PositionCode == reviewerPosition.Code);
+            if (reviewer == null)
+            {
+                throw new Exception("Unexpected error");
+            }
+            return reviewer;
         }
 
         private Leave _getLeaveDataOrFail(int id)

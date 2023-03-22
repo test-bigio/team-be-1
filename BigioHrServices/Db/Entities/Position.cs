@@ -18,7 +18,7 @@ namespace BigioHrServices.Db.Entities
         public string Level { get; set; } = string.Empty;
         [Required]
         [Column("is_active")]
-        public bool IsActive { get; set; } = true;
+        public bool IsActive { get; set; }
 
     }
 }
