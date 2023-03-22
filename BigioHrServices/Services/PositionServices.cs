@@ -17,6 +17,8 @@ namespace BigioHrServices.Services
         public PositionResponse GetPositionByCode(string code);
         public void AddPosition(PositionRequest request);
         public void EditPosition(PositionRequest request);
+        public void InactivePosition(string code);
+
     }
     public class PositionServices : IPositionService
     {
@@ -30,9 +32,10 @@ namespace BigioHrServices.Services
         {
 
             var query = _db.Positions
-                //.Where(p => p.IsActive == request.IsActive)
+                .Where(p => p.IsActive == request.IsActive)
                 .AsNoTracking()
                 .AsQueryable();
+
             if (!string.IsNullOrEmpty(request.Search))
             {
                 query = query.Where(p => p.Code.ToLower() == request.Search.ToLower() || p.Name.ToLower() == request.Search.ToLower());
@@ -120,6 +123,24 @@ namespace BigioHrServices.Services
                 throw new Exception("Code is not Exist!");
             }
 
+        }
+
+        public void InactivePosition(string code)
+        {
+            var data = _db.Positions.SingleOrDefault(p => p.Code == code);
+            if (data != null)
+            {
+                try
+                {
+                    data.IsActive = false;
+
+                    _db.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    throw;
+                }
+            }
         }
     }
 }

@@ -58,7 +58,7 @@ namespace BigioHrServices.Controllers
         }
 
         [HttpPut("positions")]
-        public BaseResponse UpdateEmployee([FromBody] PositionRequest request)
+        public BaseResponse UpdatePosition([FromBody] PositionRequest request)
         {
             BaseResponse response = new BaseResponse();
             var getCodeExist = _positionService.GetPositionByCode(request.Code);
@@ -78,7 +78,29 @@ namespace BigioHrServices.Controllers
                 _positionService.EditPosition(request);
 
                 response.isSuccess = true;
-                response.Message = "New Position Updated!";
+                response.Message = "Position is Updated!";
+            }
+
+            return new BaseResponse();
+        }
+
+        [HttpDelete("positions/{id}")]
+        public BaseResponse DeletePosition(string id)
+        {
+            BaseResponse response = new BaseResponse();
+            var getCodeExist = _positionService.GetPositionByCode(id);
+            
+            if (getCodeExist != null)
+            {
+                response.isSuccess = false;
+                response.Message = "Code is not exist!";
+            }
+            else
+            {
+                _positionService.InactivePosition(id);
+
+                response.isSuccess = true;
+                response.Message = "Position is Inactive!";
             }
 
             return new BaseResponse();
