@@ -34,7 +34,7 @@ namespace BigioHrServices.Services
 
             if (!string.IsNullOrEmpty(request.Search))
             {
-                query = query.Where(p => p.IpAddress.ToLower() == request.Search.ToLower() || 
+                query = query.Where(p => p.IpAddress.ToLower() == request.Search.ToLower() ||
                     p.Username.ToLower() == request.Search.ToLower() ||
                     p.Module.ToLower() == request.Search.ToLower() ||
                     p.Activity.ToLower() == request.Search.ToLower() ||
