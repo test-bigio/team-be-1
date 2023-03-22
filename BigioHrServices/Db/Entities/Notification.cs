@@ -5,8 +5,10 @@ namespace BigioHrServices.Db.Entities
 {
     public class Notification
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Column("id")]
-        public string Id { get; set; }
+        public int Id { get; set; }
 
         [Column("nik")]
         [ForeignKey("Employee")]
@@ -20,10 +22,6 @@ namespace BigioHrServices.Db.Entities
         [MaxLength(255)]
         [Column("body")]
         public string Body { get; set; }
-
-        [MaxLength(8000)]
-        [Column("data")]
-        public string Data { get; set; }
 
         [Column("is_read")]
         public bool IsRead { get; set; }

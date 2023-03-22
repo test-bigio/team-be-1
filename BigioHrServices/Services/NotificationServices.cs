@@ -18,8 +18,8 @@ namespace BigioHrServices.Services
     {
         public DatatableResponse GetListNotification(NotificationGetRequest request);
         public DatatableResponse GetListNotificationByEmployeeId(NotificationGetRequest request, string nik);
-        public void UpdateStatusNotification(string id);
-        public NotificationResponse GetDetailNotification(string id);
+        public void UpdateStatusNotification(int id);
+        public NotificationResponse GetDetailNotification(int id);
     }
     public class NotificationServices : INotificationService
     {
@@ -59,7 +59,6 @@ namespace BigioHrServices.Services
                     Id = _notification.Id,
                     Title = _notification.Title,
                     Body = _notification.Body,
-                    Data = _notification.Data,
                     IsRead = _notification.IsRead,
                     ReadDate = _notification.ReadDate,
                     CreatedDate = _notification.CreatedDate
@@ -106,7 +105,6 @@ namespace BigioHrServices.Services
                     Id = _notification.Id,
                     Title = _notification.Title,
                     Body = _notification.Body,
-                    Data = _notification.Data,
                     IsRead = _notification.IsRead,
                     ReadDate = _notification.ReadDate,
                     CreatedDate = _notification.CreatedDate
@@ -126,7 +124,7 @@ namespace BigioHrServices.Services
             };
         }
 
-        public void UpdateStatusNotification(string id)
+        public void UpdateStatusNotification(int id)
         {
             var data = _db.Notifications.Where(p => !p.IsRead)
                 .FirstOrDefault(p => p.Id == id);
@@ -141,21 +139,36 @@ namespace BigioHrServices.Services
             }
         }
 
-        public NotificationResponse GetDetailNotification(string id)
+        public NotificationResponse GetDetailNotification(int id)
         {
             var data = _db.Notifications
                  .Select(_notification => new NotificationResponse
                  {
-                     Id = _notification.Id,
+                     Id = _notification.Id,                   
                      Title = _notification.Title,
                      Body = _notification.Body,
-                     Data = _notification.Data,
                      IsRead = _notification.IsRead,
                      ReadDate = _notification.ReadDate,
                      CreatedDate = _notification.CreatedDate
                  })                 
                  .FirstOrDefault(p => p.Id == id);
             return data;
+        }
+
+        public void CreateNotification(NotificationAddRequest request)
+        {
+            _db.Notifications.Add(new Notification
+            {
+                Id = request.Id,
+                Nik = request.Nik,
+                Title = request.Title,
+                Body = request.Body,
+                IsRead = request.IsRead,
+                ReadDate = request.ReadDate,
+                CreatedDate = request.CreatedDate
+            }); 
+
+            _db.SaveChanges();
         }
     }
 }

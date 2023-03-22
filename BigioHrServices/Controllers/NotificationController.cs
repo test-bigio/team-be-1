@@ -42,7 +42,7 @@ namespace BigioHrServices.Controllers
         }
 
         [HttpGet("get-detail-notification/{id}")]
-        public NotificationResponse GetDetailNotification(string id)
+        public NotificationResponse GetDetailNotification(int id)
         {
             if (id == null) throw new Exception(RequestNull);
 
@@ -50,7 +50,7 @@ namespace BigioHrServices.Controllers
         }
 
         [HttpPut("update-status-notification/{id}")]
-        public BaseResponse UpdateStatusNotification(string id)
+        public BaseResponse UpdateStatusNotification(int id)
         {
             if (id == null) throw new Exception(RequestNull);
 
