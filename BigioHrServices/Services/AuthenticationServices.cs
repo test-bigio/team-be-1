@@ -26,12 +26,14 @@ namespace BigioHrServices.Services
         private readonly ApplicationDbContext _db;
         private readonly IConfiguration _config;
         private readonly Hasher _hasher;
+        private readonly IAuditModuleServices _auditLogServices;
 
-        public AuthenticationServices(IConfiguration config, ApplicationDbContext db, Hasher hasher)
+        public AuthenticationServices(IConfiguration config, ApplicationDbContext db, Hasher hasher, IAuditModuleServices auditLogServices)
         {
             _config = config;
             _db = db;
             _hasher = hasher;
+            _auditLogServices = auditLogServices;
         }
 
 
@@ -70,6 +72,13 @@ namespace BigioHrServices.Services
 
             LoginResponse response = new LoginResponse();
             response.token = token;
+
+            // Log audit success
+            _auditLogServices.CreateLog(
+                "Auth",
+                "Login",
+                "Login Success"
+            );
 
             return response;
         }
@@ -129,6 +138,13 @@ namespace BigioHrServices.Services
                 _db.Employees.Update(data);
                 _db.SaveChanges();
 
+                // Log audit success
+                _auditLogServices.CreateLog(
+                    "Auth",
+                    "Reset Password",
+                    "Reset Password Success"
+                );
+
                 return new BaseResponse
                 {
                     Message = "Reset password berhasil, silahkan login kembali"
@@ -136,6 +152,13 @@ namespace BigioHrServices.Services
             }
             catch (Exception ex)
             {
+                // Log audit failed
+                _auditLogServices.CreateLog(
+                    "Auth",
+                    "Reset Password",
+                    ex.Message
+                );
+
                 throw ex;
             }
         }
@@ -171,6 +194,13 @@ namespace BigioHrServices.Services
 
                 _db.SaveChanges();
 
+                // Log audit success
+                _auditLogServices.CreateLog(
+                    "Auth",
+                    "Add Digital Signature",
+                    "Add Digital Signature Success"
+                );
+
                 return new BaseResponse
                 {
                     Message = "Digital signature telah ditambahkan!"
@@ -178,6 +208,13 @@ namespace BigioHrServices.Services
             } 
             catch (Exception ex)
             {
+                // Log audit failed
+                _auditLogServices.CreateLog(
+                    "Auth",
+                    "Add Digital Signature",
+                    ex.Message
+                );
+
                 throw ex;
             }
         }
@@ -230,6 +267,13 @@ namespace BigioHrServices.Services
                 });
 
                 _db.SaveChanges();
+                
+                // Log audit success
+                _auditLogServices.CreateLog(
+                    "Auth",
+                    "Update Digital Signature",
+                    "Update Digital Signature Success"
+                );
 
                 return new BaseResponse
                 {
@@ -238,6 +282,13 @@ namespace BigioHrServices.Services
             } 
             catch (Exception ex)
             {
+                // Log audit failed
+                _auditLogServices.CreateLog(
+                    "Auth",
+                    "Update Digital Signature",
+                    ex.Message
+                );
+
                 throw ex;
             }
         }
