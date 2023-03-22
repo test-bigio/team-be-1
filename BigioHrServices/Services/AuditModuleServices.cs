@@ -73,7 +73,7 @@ namespace BigioHrServices.Services
                 };
 
                 _db.AuditModuls.Add(auditModul);
-                await _db.SaveChangesAsync();
+                _db.SaveChanges();
             }
             catch (Exception ex)
             {

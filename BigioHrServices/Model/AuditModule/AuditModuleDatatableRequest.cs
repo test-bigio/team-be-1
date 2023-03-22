@@ -4,6 +4,6 @@ namespace BigioHrServices.Model.AuditModule
 {
     public class AuditModuleDatatableRequest : DatatableRequest
     {
-        public string Module { get; set; }
+        public string? Module { get; set; }
     }
 }
