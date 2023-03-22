@@ -21,6 +21,7 @@ namespace BigioHrServices.Services
 	{
         private readonly ApplicationDbContext _db;
         private readonly int maxLeave = 12;
+        private readonly int maxLeaveForHighestPosition = 2;
         private readonly IEmployeeService _employeeService;
         private readonly IPositionService _positionService;
 
@@ -138,7 +139,18 @@ namespace BigioHrServices.Services
         }
         public void AddNewLeaveRequest(AddNewLeaveRequest request)
         {
-            // todo validasi matrik pelimpahan
+            // validasi matrix pelimpahan
+            var delegationList = _db.Delegations
+                .Where(x => x.ParentNIK == request.EmployeeNik)
+                .ToList();
+            if (delegationList.Count < 1)
+            {
+                throw new Exception("Employee don't have delegation list");
+            }
+            if (delegationList.Find(x => x.NIK == request.DelegatedNiK) == null)
+            {
+                throw new Exception("Delegated employee not exist in delegation list");
+            }
             
             // get reviewer
             var reviewer = _getReviewerForNik(request.EmployeeNik);
@@ -147,7 +159,10 @@ namespace BigioHrServices.Services
 
             if (isRequestingUserHaveHighestPosition)
             {
-                // todo if user have highest position then max quota permonth = 2
+                if (_getLeaveQuotaForHighestPosition(request.EmployeeNik) < 1)
+                {
+                    throw new Exception("Insufficient leave quota");
+                }
             }
             else
             {
@@ -184,9 +199,24 @@ namespace BigioHrServices.Services
 
             if (isRequestingUserHaveHighestPosition)
             {
-                // todo: still not test this implementation
                 Approve(leaveData.Id);
             }
+        }
+        private int _getLeaveQuotaForHighestPosition(string requestEmployeeNik)
+        {
+            int currentYear = DateTime.Now.Year;
+            int currentMonth = DateTime.Now.Month;
+            DateOnly firstDay = new DateOnly(currentYear, currentMonth, 1);
+            DateOnly lastDay = new DateOnly(currentYear, currentMonth, DateTime.DaysInMonth(currentYear, currentMonth));
+
+            //get employee quota, base on current year 
+            var nUsedLeave = _db.Leaves
+                .Where(leave => leave.StafNIK == requestEmployeeNik)
+                .Where(leave => leave.Status == Db.Entities.Leave.RequestStatus.Approved)
+                .Where(leave => leave.LeaveDate >= firstDay && leave.LeaveDate <= lastDay)
+                .ToList()
+                .Count();
+            return nUsedLeave - maxLeaveForHighestPosition;
         }
         private Employee? _getReviewerForNik(string nik)
         {
