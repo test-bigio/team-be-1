@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BigioHrServices.Controllers
 {
+    [Route("Notification")]
+    [ApiController]
     public class NotificationController
     {
         private readonly INotificationService _NotificationService;

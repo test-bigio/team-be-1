@@ -34,6 +34,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 
 builder.Services.AddScoped(typeof(IEmployeeService), typeof(EmployeeServices));
 builder.Services.AddScoped(typeof(IAuthenticationService), typeof(AuthenticationServices));
+builder.Services.AddScoped(typeof(ILeaveService), typeof(LeaveService));
 
 var app = builder.Build();
 
