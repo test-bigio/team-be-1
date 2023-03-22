@@ -46,7 +46,6 @@ namespace BigioHrServices.Controllers
         [HttpPost("Add")]
         public BaseResponse AddEmployee([FromBody] EmployeeAddRequest request)
         {
-            Console.WriteLine("test");
             if (request == null) throw new Exception(RequestNull);
 
             var getExisting = _employeeService.GetEmployeeByNIK(request.NIK);
