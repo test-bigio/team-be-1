@@ -19,6 +19,7 @@ namespace BigioHrServices.Services
         public LoginResponse Login(LoginRequest request);
         public BaseResponse ResetPassword(ResetPasswordRequest request);
         public BaseResponse AddPinSignature(AddPinSignatureRequest request);
+        public BaseResponse UpdatePinSignature(UpdatePinSignatureRequest request);
     }
     public class AuthenticationServices : IAuthenticationService
     {
@@ -115,7 +116,7 @@ namespace BigioHrServices.Services
             if (data == null) throw new Exception("Akun tidak ditemukan!");
 
             // Check current password not same with old password
-            if (!_hasher.verifiyPassword(request.CurrentPassword, data.Password)) throw new Exception("Password sekarang tidak sama!");
+            if (!_hasher.verifiyPassword(request.CurrentPassword, data.Password)) throw new Exception("Password sekarang tidak sesuai!");
 
             // Check if new password is same with current password
             if (_hasher.verifiyPassword(request.NewPassword, data.Password))  throw new Exception("Password baru tidak boleh sama dengan password sekarang!");
@@ -169,9 +170,51 @@ namespace BigioHrServices.Services
 
                 return new BaseResponse
                 {
-                    Message = "Digital signature telah ditambahkan"
+                    Message = "Digital signature telah ditambahkan!"
                 };
-            } catch (Exception ex)
+            } 
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        #endregion
+
+
+        #region MethodUpdatePinSignature
+        public BaseResponse UpdatePinSignature(UpdatePinSignatureRequest request)
+        {
+            // Get data employee by nik
+            var data = _db.Employees
+                        .Where(x => x.NIK.ToLower().Equals(request.NIK))
+                        .AsNoTracking()
+                        .FirstOrDefault();
+            
+            // Check if data employee not found
+            if (data == null) throw new Exception("Akun tidak ditemukan!");
+
+            // Check current signature
+            if (!_hasher.verivyPIN(request.oldPinSignature, data.DigitalSignature)) throw new Exception("Pin sekarang tidak sesuai!"); 
+
+            try
+            {
+                // TODO: If pass validation save pin signature to tabel
+                data.DigitalSignature = _hasher.HashString(request.newPinSignature);
+                _db.Employees.Update(data);
+                _db.DigitalPinLogs.Add(new DigitalPinLog
+                {
+                    EmployeeId = data.NIK,
+                    DigitalSignature = _hasher.HashString(request.newPinSignature)
+                });
+
+                _db.SaveChanges();
+
+                return new BaseResponse
+                {
+                    Message = "Digital signature berhasil diupdate!"
+                };
+            } 
+            catch (Exception ex)
             {
                 throw ex;
             }
