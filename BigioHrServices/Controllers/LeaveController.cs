@@ -15,6 +15,7 @@ namespace BigioHrServices.Controllers
 {
     [Route("leave")]
     [ApiController]
+    [Authorize]
     public class LeaveController : ControllerBase
     {
         private readonly ILeaveService _leaveService;
@@ -48,19 +49,19 @@ namespace BigioHrServices.Controllers
             return new BaseResponse();
         }
 
-    [HttpGet("quota/{id}")]
-    public LeaveQuotaResponse GetLeaveQuota(string id)
-    {
-      return _leaveService.GetLeaveQuota(id);
-    }
+        [HttpGet("quota/{id}")]
+        public LeaveQuotaResponse GetLeaveQuota(string id)
+        {
+            return _leaveService.GetLeaveQuota(id);
+        }
 
-    [HttpGet("history/{id}")]
-    public DatatableResponse GetLeaveHistory([FromQuery] LeaveHistoryRequest request, string id)
-    {
-      request.Page = request.Page <= 0 ? 1 : request.Page;
-      request.PageSize = request.PageSize <= 0 ? 10 : request.PageSize;
+        [HttpGet("history/{id}")]
+        public DatatableResponse GetLeaveHistory([FromQuery] LeaveHistoryRequest request, string id)
+        {
+            request.Page = request.Page <= 0 ? 1 : request.Page;
+            request.PageSize = request.PageSize <= 0 ? 10 : request.PageSize;
 
-      return _leaveService.GetLeaveHistory(id, request);
+            return _leaveService.GetLeaveHistory(id, request);
+        }
     }
-  }
 }
