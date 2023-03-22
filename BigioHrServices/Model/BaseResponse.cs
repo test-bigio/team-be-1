@@ -4,5 +4,14 @@
     {
         public bool isSuccess { get; set; } = true;
         public string Message { get; set; } = string.Empty;
+
+        public static BaseResponse FromException(Exception ex)
+        {
+            return new BaseResponse
+            {
+                isSuccess = false,
+                Message = ex.Message
+            };
+        }
     }
 }

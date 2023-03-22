@@ -162,8 +162,9 @@ namespace BigioHrServices.Services
                 _db.Employees.Update(data);
                 _db.DigitalPinLogs.Add(new DigitalPinLog
                 {
-                    EmployeeId = data.NIK,
-                    DigitalSignature = _hasher.HashString(request.newPinSignature)
+                    StaffId = data.NIK,
+                    Pin = _hasher.HashString(request.newPinSignature),
+                    CreatedAt = DateTime.Now
                 });
 
                 _db.SaveChanges();
@@ -203,8 +204,9 @@ namespace BigioHrServices.Services
                 _db.Employees.Update(data);
                 _db.DigitalPinLogs.Add(new DigitalPinLog
                 {
-                    EmployeeId = data.NIK,
-                    DigitalSignature = _hasher.HashString(request.newPinSignature)
+                    StaffId = data.NIK,
+                    Pin = _hasher.HashString(request.newPinSignature),
+                    CreatedAt = DateTime.Now
                 });
 
                 _db.SaveChanges();

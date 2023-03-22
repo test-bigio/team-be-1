@@ -3,6 +3,7 @@ using BigioHrServices.Db.Entities;
 using BigioHrServices.Model;
 using BigioHrServices.Model.Datatable;
 using BigioHrServices.Model.Employee;
+using BigioHrServices.Utilities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Globalization;
@@ -128,15 +129,11 @@ namespace BigioHrServices.Services
                 .AsNoTracking()
                 .FirstOrDefault();
             if (data != null) throw new Exception("NIK sudah ada!");
-            var join = DateOnly.ParseExact(request.JoinDate, "yyyy").ToString();
-            var joinInt = Convert.ToInt32(join);
-            var now = DateOnly.FromDateTime(DateTime.Now).ToString();
-            var nowString = DateOnly.ParseExact(now, "yyyy").ToString();
-            var nowInt = Int32.Parse(now);
+            string hashPassword = Hasher.HashString2("Pegawai");
 
             try
             {
-                _db.Employees.Add(new Employee
+                var newEmployee = new Employee
                 {
                     NIK = request.NIK,
                     Name = request.Name,
@@ -144,11 +141,13 @@ namespace BigioHrServices.Services
                     JoinDate = DateOnly.ParseExact(request.JoinDate, "yyyy-MM-dd"),
                     WorkLength = request.WorkLength,
                     PositionCode = request.PositionID,
-                    Password = "Pegawai",
+                    Password = hashPassword,
                     DigitalSignature = "101010",
                     IsActive = true,
                     Email = request.Email
-                }); ;
+                };
+
+                _db.Employees.Add(newEmployee);
                 _db.SaveChanges();
             }
             catch (Exception ex)

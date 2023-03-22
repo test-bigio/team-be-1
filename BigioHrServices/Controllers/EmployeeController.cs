@@ -3,14 +3,12 @@ using BigioHrServices.Model.Datatable;
 using BigioHrServices.Model.Employee;
 using BigioHrServices.Services;
 using Microsoft.AspNetCore.Mvc;
-using static BigioHrServices.Services.LogActivityServices;
 
 namespace BigioHrServices.Controllers
 {
     public class EmployeeController
     {
         private readonly IEmployeeService _employeeService;
-        private readonly ILogActivityServices _logactivityService;
         private readonly string RequestNull = "Request cannot be null!";
 
         public EmployeeController(IEmployeeService employeeService)
