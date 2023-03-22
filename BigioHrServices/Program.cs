@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using BigioHrServices.Db;
 using BigioHrServices.Services;
+using BigioHrServices.Utilities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +35,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 
 builder.Services.AddScoped(typeof(IEmployeeService), typeof(EmployeeServices));
 builder.Services.AddScoped(typeof(IAuthenticationService), typeof(AuthenticationServices));
+builder.Services.AddScoped(typeof(Hasher));
 
 var app = builder.Build();
 

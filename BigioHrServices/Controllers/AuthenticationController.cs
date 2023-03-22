@@ -24,6 +24,14 @@ namespace BigioHrServices.Controllers
             return _authService.Login(request);
         }
 
+        [HttpPost("auth/reset_password")]
+        public BaseResponse ResetPassword([FromBody] ResetPasswordRequest request)
+        {
+            if (request == null) throw new Exception(RequestNull);
+
+            _authService.ResetPassword(request);
+            return new BaseResponse();
+        }
 
     }
 }
