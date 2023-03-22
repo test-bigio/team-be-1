@@ -14,6 +14,13 @@ namespace BigioHrServices.Utilities
             return Convert.ToBase64String(result);
         }
 
+        public static string HashString2(string value)
+        {
+            byte[] bytes = Encoding.ASCII.GetBytes(value);
+            byte[] result = MD5.HashData(bytes);
+            return Convert.ToBase64String(result);
+        }
+
         public string HashDefaultPassword()
         {
             return this.HashString(DefaultPassword);
