@@ -131,8 +131,11 @@ namespace BigioHrServices.Services
         }
         public void AddNewLeaveRequest(AddNewLeaveRequest request)
         {
+            // todo validasi matrik pelimpahan
+            
             // todo get this flag from position
             var currentUserHaveHighestPosition = false;
+
             if (currentUserHaveHighestPosition)
             {
                 // todo if user have highest position then max quota permonth = 2
@@ -145,16 +148,20 @@ namespace BigioHrServices.Services
                     throw new Exception("Insufficient leave quota");
                 }
             }
-            // todo validasi matrik pelimpahan
-            
-            var reviewer = _getReviewerForNik(request.EmployeeNIk);
+
+            var reviewerNik = "SYSTEM";
+            if (!currentUserHaveHighestPosition)
+            {
+                var reviewer = _getReviewerForNik(request.EmployeeNIk);
+                reviewerNik = reviewer.NIK;
+            }
             var leaveData = new Leave
             {
                 StafNIK = request.EmployeeNIk,
                 DelegatedStafNIK = request.DelegatedNIK,
-                ReviewerNIK = reviewer.NIK,
+                ReviewerNIK = reviewerNik,
                 Status = Leave.RequestStatus.InReview,
-                LeaveDate = request.LeaveDate,
+                LeaveDate = DateOnly.FromDateTime(request.LeaveDate),
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
@@ -174,7 +181,7 @@ namespace BigioHrServices.Services
 
             if (currentUserHaveHighestPosition)
             {
-                // still not test this implementation
+                // todo: still not test this implementation
                 // Approve(leaveData.Id);
             }
         }
