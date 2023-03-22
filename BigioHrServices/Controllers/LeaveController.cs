@@ -19,34 +19,60 @@ namespace BigioHrServices.Controllers
     public class LeaveController : ControllerBase
     {
         private readonly ILeaveService _leaveService;
+        private readonly IAuditModuleServices _auditService;
 
-        public LeaveController(ILeaveService leaveService)
+        public LeaveController(ILeaveService leaveService, IAuditModuleServices auditService)
         {
             _leaveService = leaveService;
+            _auditService = auditService;
         }
 
         [HttpPost("requests")]
         public BaseResponse NewRequest(AddNewLeaveRequest request)
         {
-            // todo validate pin token
-            _leaveService.AddNewLeaveRequest(request);
-            return new BaseResponse();
+            try
+            {
+                // todo validate pin token
+                var leaveRequest = _leaveService.AddNewLeaveRequest(request);
+                _auditService.CreateLog("Cuti", "Create request cuti", $"Create new request cuti with id {leaveRequest.Id}");
+                return BaseResponse.Ok();
+            }
+            catch (Exception e)
+            {
+                return BaseResponse.FromException(e);
+            }
         }
 
         [HttpPost("requests/{id}/approve")]
         public BaseResponse ApproveRequest(int id)
         {
-            // todo validate pin token
-            _leaveService.Approve(id);
-            return new BaseResponse();
+            try
+            {
+                // todo validate pin token
+                _leaveService.Approve(id);
+                _auditService.CreateLog("Cuti", "Approve request cuti", $"Approve request cuti with id {id}");
+                return BaseResponse.Ok();
+            }
+            catch (Exception e)
+            {
+                return BaseResponse.FromException(e);
+            }
         }
 
         [HttpPost("requests/{id}/reject")]
         public BaseResponse RejectRequest(int id)
         {
-            // todo validate pin token
-            _leaveService.Reject(id);
-            return new BaseResponse();
+            try
+            {
+                // todo validate pin token
+                _leaveService.Reject(id);
+                _auditService.CreateLog("Cuti", "Reject request cuti", $"Reject request cuti with id {id}");
+                return BaseResponse.Ok();
+            }
+            catch (Exception e)
+            {
+                return BaseResponse.FromException(e);
+            }
         }
 
         [HttpGet("quota/{id}")]
@@ -61,7 +87,16 @@ namespace BigioHrServices.Controllers
             request.Page = request.Page <= 0 ? 1 : request.Page;
             request.PageSize = request.PageSize <= 0 ? 10 : request.PageSize;
 
-            return _leaveService.GetLeaveHistory(id, request);
-        }
+      return _leaveService.GetLeaveHistory(id, request);
     }
+
+    [HttpGet("/requests")]
+    public DatatableResponse ListRequests([FromQuery] LeaveSearchRequest request)
+    {
+        request.Page = request.Page <= 0 ? 1 : request.Page;
+        request.PageSize = request.PageSize <= 0 ? 10 : request.PageSize;
+        
+        return _leaveService.GetList(request);
+    }
+  }
 }

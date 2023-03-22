@@ -94,6 +94,7 @@ builder.Services.AddScoped<IAuthUserService, AuthUserService>();
 builder.Services.AddScoped(typeof(IEmployeeService), typeof(EmployeeServices));
 builder.Services.AddScoped(typeof(IAuthenticationService), typeof(AuthenticationServices));
 builder.Services.AddScoped(typeof(Hasher));
+builder.Services.AddScoped(typeof(IDelegationService), typeof(DelegationServices));
 builder.Services.AddScoped(typeof(ILeaveService), typeof(LeaveService));
 builder.Services.AddScoped(typeof(IPositionService), typeof(PositionServices));
 builder.Services.AddScoped(typeof(INotificationService), typeof(NotificationServices));

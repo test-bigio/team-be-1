@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BigioHrServices.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230322114149_Initial")]
-    partial class Initial
+    [Migration("20230322165352_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -23,6 +23,40 @@ namespace BigioHrServices.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("BigioHrServices.Db.Entities.AuditModul", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Activity")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Detail")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("IpAddress")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Module")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AuditModuls");
+                });
 
             modelBuilder.Entity("BigioHrServices.Db.Entities.Delegation", b =>
                 {
@@ -38,6 +72,31 @@ namespace BigioHrServices.Migrations
                     b.HasKey("NIK");
 
                     b.ToTable("Delegations");
+                });
+
+            modelBuilder.Entity("BigioHrServices.Db.Entities.DigitalPinLog", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Pin")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("pin");
+
+                    b.Property<string>("StaffId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("staff_id");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DigitalPinLogs");
                 });
 
             modelBuilder.Entity("BigioHrServices.Db.Entities.Employee", b =>
@@ -101,10 +160,6 @@ namespace BigioHrServices.Migrations
                     b.Property<string>("PositionCode")
                         .IsRequired()
                         .HasColumnType("text")
-                        .HasColumnName("position_code");
-
-                    b.Property<long>("PositionID")
-                        .HasColumnType("bigint")
                         .HasColumnName("position_id");
 
                     b.Property<string>("Sex")
@@ -145,8 +200,8 @@ namespace BigioHrServices.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("LeaveStart")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<DateOnly>("LeaveDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("ReviewerNIK")
                         .IsRequired()
@@ -159,9 +214,6 @@ namespace BigioHrServices.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<int>("TotalLeaveInDays")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
 
@@ -170,39 +222,14 @@ namespace BigioHrServices.Migrations
                     b.ToTable("Leaves");
                 });
 
-            modelBuilder.Entity("BigioHrServices.Db.Entities.LogActivity", b =>
+            modelBuilder.Entity("BigioHrServices.Db.Entities.Notification", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasColumnName("id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
-
-                    b.Property<string>("Activity")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("activity");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("date");
-
-                    b.Property<string>("Modul")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("modul");
-
-                    b.HasKey("ID");
-
-                    b.ToTable("LogActivities");
-                });
-
-            modelBuilder.Entity("BigioHrServices.Db.Entities.Notification", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("text")
-                        .HasColumnName("id");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Body")
                         .IsRequired()
@@ -214,15 +241,14 @@ namespace BigioHrServices.Migrations
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_date");
 
-                    b.Property<string>("Data")
-                        .IsRequired()
-                        .HasMaxLength(8000)
-                        .HasColumnType("character varying(8000)")
-                        .HasColumnName("data");
-
                     b.Property<bool>("IsRead")
                         .HasColumnType("boolean")
                         .HasColumnName("is_read");
+
+                    b.Property<string>("Nik")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("nik");
 
                     b.Property<DateTime?>("ReadDate")
                         .HasColumnType("timestamp without time zone")
@@ -235,6 +261,8 @@ namespace BigioHrServices.Migrations
                         .HasColumnName("title");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Nik");
 
                     b.ToTable("Notifications");
                 });
@@ -262,6 +290,17 @@ namespace BigioHrServices.Migrations
                     b.HasKey("Code");
 
                     b.ToTable("Positions");
+                });
+
+            modelBuilder.Entity("BigioHrServices.Db.Entities.Notification", b =>
+                {
+                    b.HasOne("BigioHrServices.Db.Entities.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("Nik")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
                 });
 #pragma warning restore 612, 618
         }

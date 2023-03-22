@@ -16,9 +16,8 @@ namespace BigioHrServices.Services
     public interface IEmployeeService
     {
         public Pageable<EmployeeResponse> GetList(EmployeeSearchRequest request);
-        public SingleReponse<EmployeeResponse> GetDetailEmployees(string nik);
+        public EmployeeResponse GetDetailEmployees(string nik);
         public Employee GetEmployeeByNIK(string nik);
-        public Employee GetEmployeeById(long id);
         public void EmployeeAdd(EmployeeAddRequest request);
         public void EmployeeUpdate(EmployeeUpdateRequest request);
         public void EmployeeDelete(string nik);
@@ -27,9 +26,11 @@ namespace BigioHrServices.Services
     public class EmployeeServices : IEmployeeService
     {
         private readonly ApplicationDbContext _db;
-        public EmployeeServices(ApplicationDbContext db)
+        private readonly IAuditModuleServices _auditLogService;
+        public EmployeeServices(ApplicationDbContext db, IAuditModuleServices auditLogService)
         {
             _db = db;
+            _auditLogService = auditLogService;
         }
 
         public Pageable<EmployeeResponse> GetList(EmployeeSearchRequest request)
@@ -52,7 +53,7 @@ namespace BigioHrServices.Services
             {
                 query = query.Where(p => p.JoinDate < DateOnly.ParseExact(request.JoinDateRangeEnd, "yyy-MM-dd"));
             }
-           
+
 
             var data = query
                 .Select(_employee => new EmployeeResponse
@@ -77,17 +78,18 @@ namespace BigioHrServices.Services
                     .Name;
             }
 
+            _auditLogService.CreateLog(
+                           "Pegawai",
+                           "List",
+                           "Get List"
+                       );
+
             return pagedData;
         }
 
-        public SingleReponse<EmployeeResponse> GetDetailEmployees(string nik)
+        public EmployeeResponse GetDetailEmployees(string nik)
         {
-            var employee = _db.Employees
-                .Where(p => p.NIK == nik)
-                .AsNoTracking()
-                .AsQueryable().ToList();
-
-            var data = employee
+            var data = _db.Employees
                 .Select(_employee => new EmployeeResponse
                 {
                     NIK = _employee.NIK,
@@ -99,10 +101,14 @@ namespace BigioHrServices.Services
                     IsActive = _employee.IsActive,
                     DigitalSignature = _employee.DigitalSignature,
                 })
-                .ToList();
+                .FirstOrDefault(p => p.NIK == nik);
 
-            var listData = new SingleReponse<EmployeeResponse>(data);
-            return listData;
+            _auditLogService.CreateLog(
+                      "Pegawai",
+                      "Detail Pegawai",
+                      "Get Detail Pegawai"
+                  );
+            return data;
         }
 
         public Employee GetEmployeeByNIK(string nik)
@@ -113,23 +119,13 @@ namespace BigioHrServices.Services
                 .FirstOrDefault();
         }
 
-
-        public Employee GetEmployeeById(long id)
-        {
-            return _db.Employees
-                .Find(id);
-        }
-
-
-       
         public void EmployeeAdd(EmployeeAddRequest request)
         {
-            var data = _db.Employees
-                .Where(p => p.NIK.ToLower() == request.NIK)
-                .AsNoTracking()
-                .FirstOrDefault();
+            var data = GetEmployeeByNIK(request.NIK);
             if (data != null) throw new Exception("NIK sudah ada!");
+
             string hashPassword = Hasher.HashString2("Pegawai");
+            string hashDigitalPin = Hasher.HashString2("101010");
 
             try
             {
@@ -142,13 +138,19 @@ namespace BigioHrServices.Services
                     WorkLength = request.WorkLength,
                     PositionCode = request.PositionID,
                     Password = hashPassword,
-                    DigitalSignature = "101010",
+                    DigitalSignature = hashDigitalPin,
                     IsActive = true,
                     Email = request.Email
                 };
 
                 _db.Employees.Add(newEmployee);
                 _db.SaveChanges();
+
+                _auditLogService.CreateLog(
+                          "Pegawai",
+                          "Add",
+                          "Add Pegawai"
+                      );
             }
             catch (Exception ex)
             {
@@ -174,14 +176,32 @@ namespace BigioHrServices.Services
                     data.IsOnLeave = request.IsOnLeave;
                     data.Email = request.Email;
                     _db.SaveChanges();
+
+                    _auditLogService.CreateLog(
+                          "Pegawai",
+                          "Update",
+                          "Sukses Update"
+                      );
                 }
                 catch (Exception ex)
                 {
+                    _auditLogService.CreateLog(
+                         "Pegawai",
+                          "Update",
+                          "Gagal Update"
+                      );
                     throw ex;
+
+
                 }
             }
             else
             {
+                _auditLogService.CreateLog(
+                         "Pegawai",
+                          "Update",
+                          "NIK tidak ditemukan"
+                      );
                 throw new Exception("NIK tidak ditemukan");
             }
 
@@ -190,23 +210,29 @@ namespace BigioHrServices.Services
         public void EmployeeDelete(string nik)
         {
             var data = _db.Employees.SingleOrDefault(p => p.NIK == nik);
-            if (data == null) throw new Exception("NIK Tidak Ditemukan!");
-            if (Convert.ToInt32(data.CreatedDate.ToString("yyyMMdd")) > Convert.ToInt32(DateTime.Now.ToString("yyyMMdd")) )
+
+            try
             {
-                try
-                {
-                    data.IsActive = false;
-                    _db.SaveChanges();
-                }
-                catch (Exception ex)
-                {
-                    throw ex;
-                }
-            }else
-            {
-                throw new Exception("Pegawai Dalam Pelimpahan Wewenang");
+                data.IsActive = false;
+                _db.SaveChanges();
+
+                _auditLogService.CreateLog(
+                        "Pegawai",
+                         "Non Active",
+                         "Sukses Non Active"
+                     );
             }
-           
+            catch (Exception ex)
+            {
+                _auditLogService.CreateLog(
+                        "Pegawai",
+                         "Non Active",
+                         "Gagal Non Active"
+                     );
+                throw ex;
+            }
+
+
         }
     }
 }

@@ -90,14 +90,14 @@ namespace BigioHrServices.Services
                 .FirstOrDefault();
 
             if (data != null) throw new Exception("Code is Exist!");
-
             try
             {
                 _db.Positions.Add(new Position
                 {
                     Code = request.Code,
                     Name = request.Name,
-                    Level = request.Level
+                    Level = request.Level,
+                    IsActive = true
                 });
                 _db.SaveChanges();
             }
