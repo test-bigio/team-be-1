@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BigioHrServices.Controllers
 {
-    [Route("Notification")]
+    [Route("notification")]
     [ApiController]
     public class NotificationController
     {
@@ -19,30 +19,38 @@ namespace BigioHrServices.Controllers
             _notificationService = NotificationService;
         }
 
-        [HttpGet("GetListNotification")]
+        [HttpGet("get-list-notification")]
         public DatatableResponse GetListNotification([FromQuery] NotificationGetRequest request)
         {
             if(request == null) throw new Exception(RequestNull);
 
-            request.Page = request.Page <= 0 ? 1 : request.Page;
+            request.Page = request.Page < 0 ? 0 : request.Page;
             request.PageSize = request.PageSize <= 0 ? 10 : request.PageSize;
 
             return _notificationService.GetListNotification(request);
         }
 
-        [HttpGet("GetListNotificationByEmployeeId")]
+        [HttpGet("get-list-notification-by-employee-id")]
         public DatatableResponse GetNotificationsByEmployeeId([FromQuery] NotificationGetRequest request, string nik)
         {
             if (request == null) throw new Exception(RequestNull);
 
-            request.Page = request.Page <= 0 ? 1 : request.Page;
+            request.Page = request.Page < 0 ? 0 : request.Page;
             request.PageSize = request.PageSize <= 0 ? 10 : request.PageSize;
 
             return _notificationService.GetListNotificationByEmployeeId(request, nik);
         }
 
-        [HttpPut("UpdateStatusNotification")]
-        public BaseResponse UpdateStatusNotification([FromBody] string id)
+        [HttpGet("get-detail-notification/{id}")]
+        public NotificationResponse GetDetailNotification(string id)
+        {
+            if (id == null) throw new Exception(RequestNull);
+
+            return _notificationService.GetDetailNotification(id);
+        }
+
+        [HttpPut("update-status-notification/{id}")]
+        public BaseResponse UpdateStatusNotification(string id)
         {
             if (id == null) throw new Exception(RequestNull);
 
@@ -51,8 +59,8 @@ namespace BigioHrServices.Controllers
             return new BaseResponse();
         }
 
-        [HttpPut("UpdateStatusNotificationByEmployeeId")]
-        public BaseResponse UpdateStatusNotificationByEmployeeId([FromBody] string id, string nik)
+        [HttpPut("update-status-notification-by-employee-id/{id}")]
+        public BaseResponse UpdateStatusNotificationByEmployeeId(string id, string nik)
         {
             if (id == null) throw new Exception(RequestNull);
 
