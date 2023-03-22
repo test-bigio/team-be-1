@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using BigioHrServices.Db;
 using BigioHrServices.Services;
+using BigioHrServices.Utilities;
 using BigioHrServices.Db.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Newtonsoft.Json;
@@ -92,7 +93,9 @@ builder.Services.AddAuthorization(opts =>
 builder.Services.AddScoped<IAuthUserService, AuthUserService>();
 builder.Services.AddScoped(typeof(IEmployeeService), typeof(EmployeeServices));
 builder.Services.AddScoped(typeof(IAuthenticationService), typeof(AuthenticationServices));
+builder.Services.AddScoped(typeof(Hasher));
 builder.Services.AddScoped(typeof(ILeaveService), typeof(LeaveService));
+builder.Services.AddScoped(typeof(IPositionService), typeof(PositionServices));
 builder.Services.AddScoped(typeof(INotificationService), typeof(NotificationServices));
 builder.Services.AddScoped(typeof(IAuditModuleServices), typeof(AuditModuleServices));
 

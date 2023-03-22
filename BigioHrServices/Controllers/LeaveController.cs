@@ -25,16 +25,19 @@ namespace BigioHrServices.Controllers
         }
 
         [HttpPost("requests")]
-        public BaseResponse NewRequest()
+        public BaseResponse NewRequest(AddNewLeaveRequest request)
         {
-            // todo implement this
+            // todo get nik from current session
+            var currentUserNik = "123123"; 
+            // todo validate pin token
+            _leaveService.AddNewLeaveRequest(request, currentUserNik);
             return new BaseResponse();
         }
 
         [HttpPost("requests/{id}/approve")]
         public BaseResponse ApproveRequest(int id)
         {
-            // todo implement this
+            // todo validate pin token
             _leaveService.Approve(id);
             return new BaseResponse();
         }
@@ -42,7 +45,7 @@ namespace BigioHrServices.Controllers
         [HttpPost("requests/{id}/reject")]
         public BaseResponse RejectRequest(int id)
         {
-            // todo implement this
+            // todo validate pin token
             _leaveService.Reject(id);
             return new BaseResponse();
         }
