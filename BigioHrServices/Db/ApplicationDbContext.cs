@@ -10,5 +10,6 @@ namespace BigioHrServices.Db
 
         }
         public DbSet<Employee> Employees { get; set; }
+        public DbSet<Leave> Leaves { get; set; }
     }
 }
