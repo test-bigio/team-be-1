@@ -35,6 +35,7 @@ namespace BigioHrServices.Services
 
         public LeaveQuotaResponse GetLeaveQuota(string nik)
         {
+            int totalLeave = 0;
             int currentYear = DateTime.Now.Year;
             DateTime firstDay = new DateTime(currentYear, 1, 1);
             DateTime lastDay = new DateTime(currentYear, 12, 31);
@@ -43,36 +44,53 @@ namespace BigioHrServices.Services
             if (employee == null) throw new Exception("Employee not found");
             
             //get employee quota, base on current year 
-            var leaveCount = _db.Leaves
+            var leaves = _db.Leaves
                 .Where(leave => leave.StafNIK == nik)
                 .Where(leave => leave.Status == Db.Entities.Leave.RequestStatus.Approved)
                 .Where(leave => leave.LeaveStart.Date >= firstDay && leave.LeaveStart.Date <= lastDay)
-                .ToList()
-                .Count();
+                .ToList();
+
+            foreach (var leave in leaves)
+            {
+                totalLeave += leave.TotalLeaveInDays;
+            }
 
             return new LeaveQuotaResponse
             {
-                LeaveAvailable = maxLeave - leaveCount
+                LeaveAvailable = maxLeave - totalLeave
             };
         }
 
         public DatatableResponse GetLeaveHistory(string nik, LeaveHistoryRequest request)
         {
+            int currentYear = DateTime.Now.Year;
+            if (!string.IsNullOrEmpty(request.Search)) currentYear = Int16.Parse(request.Search);
+            DateTime firstDay = new DateTime(currentYear, 1, 1);
+            DateTime lastDay = new DateTime(currentYear, 12, 31);
+            
             var employee = _db.Employees.SingleOrDefault(employee => employee.NIK == nik);
             if (employee == null) throw new Exception("Employee not found");
+            var totalRecord = _db.Leaves
+                .Where(leave => leave.StafNIK == nik)
+                .Where(leave => leave.Status == Db.Entities.Leave.RequestStatus.Approved)
+                .Where(leave => leave.LeaveStart.Date >= firstDay && leave.LeaveStart.Date <= lastDay)
+                .Select(leave => leave.StafNIK)
+                .Count();
             
             var leaves = _db.Leaves
                 .Where(leave => leave.StafNIK == nik)
                 .Where(leave => leave.Status == Db.Entities.Leave.RequestStatus.Approved)
+                .Where(leave => leave.LeaveStart.Date >= firstDay && leave.LeaveStart.Date <= lastDay)
+                .Skip((request.Page - 1 )* request.PageSize)
+                .Take(request.PageSize)
                 .ToList();
 
-            Console.WriteLine(leaves);
             return new DatatableResponse()
             {
                 Data = leaves.ToArray(),
-                TotalRecords = leaves.Count,
-                PageSize = request.PageSize > leaves.Count ? leaves.Count : request.PageSize,
-                NextPage = (request.PageSize * request.Page) < leaves.Count,
+                TotalRecords = totalRecord,
+                PageSize = request.PageSize > totalRecord ? totalRecord : request.PageSize,
+                NextPage = (request.PageSize * request.Page) < totalRecord,
                 PrevPage = request.Page > 1,
             };
         }
