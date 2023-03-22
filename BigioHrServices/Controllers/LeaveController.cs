@@ -28,25 +28,46 @@ namespace BigioHrServices.Controllers
         [HttpPost("requests")]
         public BaseResponse NewRequest(AddNewLeaveRequest request)
         {
-            // todo validate pin token
-            _leaveService.AddNewLeaveRequest(request);
-            return new BaseResponse();
+            try
+            {
+                // todo validate pin token
+                _leaveService.AddNewLeaveRequest(request);
+                return new BaseResponse();
+            }
+            catch (Exception e)
+            {
+                return BaseResponse.FromException(e);
+            }
         }
 
         [HttpPost("requests/{id}/approve")]
         public BaseResponse ApproveRequest(int id)
         {
-            // todo validate pin token
-            _leaveService.Approve(id);
-            return new BaseResponse();
+            try
+            {
+                // todo validate pin token
+                _leaveService.Approve(id);
+                return new BaseResponse();
+            }
+            catch (Exception e)
+            {
+                return BaseResponse.FromException(e);
+            }
         }
 
         [HttpPost("requests/{id}/reject")]
         public BaseResponse RejectRequest(int id)
         {
-            // todo validate pin token
-            _leaveService.Reject(id);
-            return new BaseResponse();
+            try
+            {
+                // todo validate pin token
+                _leaveService.Reject(id);
+                return new BaseResponse();
+            }
+            catch (Exception e)
+            {
+                return BaseResponse.FromException(e);
+            }
         }
 
         [HttpGet("quota/{id}")]
