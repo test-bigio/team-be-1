@@ -20,6 +20,8 @@ namespace BigioHrServices.Services
         public DatatableResponse GetListNotificationByEmployeeId(NotificationGetRequest request, string nik);
         public void UpdateStatusNotification(int id);
         public NotificationResponse GetDetailNotification(int id);
+        public void CreateNotification(NotificationAddRequest request);
+        public void DeleteNotification(int id);
     }
     public class NotificationServices : INotificationService
     {
@@ -159,16 +161,24 @@ namespace BigioHrServices.Services
         {
             _db.Notifications.Add(new Notification
             {
-                Id = request.Id,
                 Nik = request.Nik,
                 Title = request.Title,
                 Body = request.Body,
-                IsRead = request.IsRead,
-                ReadDate = request.ReadDate,
                 CreatedDate = request.CreatedDate
             }); 
 
             _db.SaveChanges();
+        }
+
+        public void DeleteNotification(int id)
+        {
+            var data = _db.Notifications.FirstOrDefault(p => p.Id == id);
+
+            if (data != null) {
+
+                _db.Notifications.Remove(data);
+                _db.SaveChanges();
+            }
         }
     }
 }

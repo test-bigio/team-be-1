@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BigioHrServices.Controllers
 {
-    [Route("notification")]
+    [Route("notifications")]
     [ApiController]
     public class NotificationController
     {
@@ -19,7 +19,7 @@ namespace BigioHrServices.Controllers
             _notificationService = NotificationService;
         }
 
-        [HttpGet("get-list-notification")]
+        [HttpGet]
         public DatatableResponse GetListNotification([FromQuery] NotificationGetRequest request)
         {
             if(request == null) throw new Exception(RequestNull);
@@ -30,7 +30,7 @@ namespace BigioHrServices.Controllers
             return _notificationService.GetListNotification(request);
         }
 
-        [HttpGet("get-list-notification-by-employee-id")]
+        [HttpGet("me")]
         public DatatableResponse GetNotificationsByEmployeeId([FromQuery] NotificationGetRequest request, string nik)
         {
             if (request == null) throw new Exception(RequestNull);
@@ -41,7 +41,7 @@ namespace BigioHrServices.Controllers
             return _notificationService.GetListNotificationByEmployeeId(request, nik);
         }
 
-        [HttpGet("get-detail-notification/{id}")]
+        [HttpGet("{id}")]
         public NotificationResponse GetDetailNotification(int id)
         {
             if (id == null) throw new Exception(RequestNull);
@@ -49,7 +49,7 @@ namespace BigioHrServices.Controllers
             return _notificationService.GetDetailNotification(id);
         }
 
-        [HttpPut("update-status-notification/{id}")]
+        /*[HttpPut("update-status-notification/{id}")]
         public BaseResponse UpdateStatusNotification(int id)
         {
             if (id == null) throw new Exception(RequestNull);
@@ -58,5 +58,25 @@ namespace BigioHrServices.Controllers
 
             return new BaseResponse();
         }
+
+        /*[HttpPost("create-notification")]
+        public BaseResponse CreateNotification([FromQuery] NotificationAddRequest request)
+        {
+            if (request == null) throw new Exception(RequestNull);
+
+            _notificationService.CreateNotification(request);
+
+            return new BaseResponse();
+        }
+
+        [HttpDelete("delete-notification/{id}")]
+        public BaseResponse DeleteNotification(int id)
+        {
+            if (id == null) throw new Exception(RequestNull);
+
+            _notificationService.DeleteNotification(id);
+
+            return new BaseResponse();
+        }*/
     }
 }
