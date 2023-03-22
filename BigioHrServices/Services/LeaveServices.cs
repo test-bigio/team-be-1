@@ -24,13 +24,14 @@ namespace BigioHrServices.Services
         private readonly int maxLeaveForHighestPosition = 2;
         private readonly IEmployeeService _employeeService;
         private readonly IPositionService _positionService;
+        private readonly IAuditModuleServices _auditLogService;
 
-        public LeaveService(ApplicationDbContext db, IEmployeeService employeeService, IPositionService positionService)
+        public LeaveService(ApplicationDbContext db, IEmployeeService employeeService, IPositionService positionService, IAuditModuleServices auditLogService)
 		{
 			_db = db;
             _employeeService = employeeService;
             _positionService = positionService;
-
+            _auditLogService = auditLogService;
         }
 
         public void Approve(int id)
@@ -39,6 +40,11 @@ namespace BigioHrServices.Services
 
             if (leave.IsAlreadyReviewed())
             {
+                _auditLogService.CreateLog(
+                      "Cuti",
+                      "Approve Cuti Pegawai",
+                      "Gagal approve cuti karena sudah di review"
+                  );
                 throw new Exception("Request already reviewed");
             }
             
@@ -55,6 +61,12 @@ namespace BigioHrServices.Services
             };
             _db.Notifications.Add(notification);
             _db.SaveChanges();
+
+            _auditLogService.CreateLog(
+                      "Cuti",
+                      "Approve Cuti Pegawai",
+                      "Sukses approve cuti"
+                  );
         }
 
         public void Reject(int id)
@@ -63,6 +75,11 @@ namespace BigioHrServices.Services
 
             if (!leave.IsAlreadyReviewed())
             {
+                _auditLogService.CreateLog(
+                      "Cuti",
+                      "Reject Cuti Pegawai",
+                      "Gagal approve cuti karena sudah di review"
+                  );
                 throw new Exception("Request already reviewed");
             }
             leave.Status = Leave.RequestStatus.Rejected;
@@ -78,6 +95,11 @@ namespace BigioHrServices.Services
             };
             _db.Notifications.Add(notification);
             _db.SaveChanges();
+            _auditLogService.CreateLog(
+                      "Cuti",
+                      "Reject Cuti Pegawai",
+                      "Sukses reject cuti"
+                  );
         }
 
         public LeaveQuotaResponse GetLeaveQuota(string nik)
@@ -87,7 +109,14 @@ namespace BigioHrServices.Services
             DateOnly lastDay = new DateOnly(currentYear, 12, 31);
 
             var employee = _db.Employees.SingleOrDefault(employee => employee.NIK == nik);
-            if (employee == null) throw new Exception("Employee not found");
+            if (employee == null){
+                _auditLogService.CreateLog(
+                    "Cuti",
+                    "Cuti Quota",
+                    "Employee not found"
+                );
+                throw new Exception("Employee not found");
+            } 
             
             //get employee quota, base on current year 
             var totalLeave = _db.Leaves
@@ -96,6 +125,12 @@ namespace BigioHrServices.Services
                 .Where(leave => leave.LeaveDate >= firstDay && leave.LeaveDate <= lastDay)
                 .ToList()
                 .Count();
+
+            _auditLogService.CreateLog(
+                "Cuti",
+                "Cuti Quota",
+                "Sukses get cuti quota"
+            );
 
             return new LeaveQuotaResponse
             {
@@ -127,6 +162,12 @@ namespace BigioHrServices.Services
                 .Take(request.PageSize)
                 .ToList();
 
+            _auditLogService.CreateLog(
+                "Cuti",
+                "History Cuti",
+                "Sukses get history cuti"
+            );
+
             return new DatatableResponse()
             {
                 Data = leaves.ToArray(),
@@ -144,10 +185,20 @@ namespace BigioHrServices.Services
                 .ToList();
             if (delegationList.Count < 1)
             {
+                _auditLogService.CreateLog(
+                      "Cuti",
+                      "Pengajuan Cuti",
+                      "Gagal. Employee tidak punya list delegasi"
+                  );
                 throw new Exception("Employee don't have delegation list");
             }
             if (delegationList.Find(x => x.NIK == request.DelegatedNiK) == null)
             {
+                _auditLogService.CreateLog(
+                    "Cuti",
+                    "Pengajuan Cuti",
+                    "Gagal. Delegasi tidak ada di list"
+                );
                 throw new Exception("Delegated employee not exist in delegation list");
             }
             
@@ -160,6 +211,11 @@ namespace BigioHrServices.Services
             {
                 if (_getLeaveQuotaForHighestPosition(request.EmployeeNik) < 1)
                 {
+                    _auditLogService.CreateLog(
+                      "Cuti",
+                      "Pengajuan Cuti",
+                      "Gagal. Habis quota cuti"
+                    );
                     throw new Exception("Insufficient leave quota");
                 }
             }
@@ -168,6 +224,11 @@ namespace BigioHrServices.Services
                 var quotaResponse = GetLeaveQuota(request.EmployeeNik);
                 if (quotaResponse.LeaveAvailable < 1)
                 {
+                    _auditLogService.CreateLog(
+                      "Cuti",
+                      "Pengajuan Cuti",
+                      "Gagal. Habis quota cuti"
+                    );
                     throw new Exception("Insufficient leave quota");
                 }
             }
@@ -184,6 +245,11 @@ namespace BigioHrServices.Services
             };
             _db.Leaves.Add(leaveData);
             _db.SaveChanges();
+            _auditLogService.CreateLog(
+                "Cuti",
+                "Pengajuan Cuti",
+                "Sukses pengajuan cuti"
+            );
 
             // add to notification
             var notification = new Notification
@@ -316,6 +382,12 @@ namespace BigioHrServices.Services
                     UpdatedAt = _leave.UpdatedAt,
                 })
                 .ToList();
+
+            _auditLogService.CreateLog(
+                "Cuti",
+                "List pengajuan cuti",
+                "Sukses get list cuti"
+            );
 
             return new DatatableResponse()
             {
