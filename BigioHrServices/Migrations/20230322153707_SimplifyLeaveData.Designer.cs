@@ -3,17 +3,19 @@ using System;
 using BigioHrServices.Db;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace BigioHrServices.Db.Entities
+namespace BigioHrServices.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230322153707_SimplifyLeaveData")]
+    partial class SimplifyLeaveData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,13 +24,13 @@ namespace BigioHrServices.Db.Entities
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("BigioHrServices.Db.Entities.Employee", b =>
+            modelBuilder.Entity("BigioHrServices.Db.Entities.Delegation", b =>
                 {
                     b.Property<string>("NIK")
                         .HasColumnType("text")
                         .HasColumnName("nik");
 
-                    b.Property<string>("DigitalSignature")
+                    b.Property<string>("ParentNIK")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("parent_nik");
@@ -44,35 +46,14 @@ namespace BigioHrServices.Db.Entities
                         .HasColumnType("text")
                         .HasColumnName("nik");
 
-                    b.Property<long?>("CreatedBy")
-                        .HasColumnType("bigint")
-                        .HasColumnName("created_by");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("created_date");
-
                     b.Property<string>("DigitalSignature")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("digital_signature");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("email");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("is_active");
-
-                    b.Property<bool>("IsOnLeave")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_on_leave");
-
-                    b.Property<int>("JatahCuti")
-                        .HasColumnType("integer")
-                        .HasColumnName("jatah_cuti");
 
                     b.Property<DateOnly>("JoinDate")
                         .HasColumnType("date")
@@ -87,32 +68,20 @@ namespace BigioHrServices.Db.Entities
                         .HasColumnType("text")
                         .HasColumnName("name");
 
-                    b.Property<string>("OTP")
-                        .HasColumnType("text")
-                        .HasColumnName("otp");
-
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("password");
 
-                    b.Property<string>("PositionCode")
+                    b.Property<string>("Position")
                         .IsRequired()
                         .HasColumnType("text")
-                        .HasColumnName("position_id");
+                        .HasColumnName("position");
 
                     b.Property<string>("Sex")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("sex");
-
-                    b.Property<long?>("UpdatedBy")
-                        .HasColumnType("bigint")
-                        .HasColumnName("updated_by");
-
-                    b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("updated_date");
 
                     b.Property<string>("WorkLength")
                         .IsRequired()
@@ -121,7 +90,7 @@ namespace BigioHrServices.Db.Entities
 
                     b.HasKey("NIK");
 
-                    b.ToTable("Employees", (string)null);
+                    b.ToTable("Employees");
                 });
 
             modelBuilder.Entity("BigioHrServices.Db.Entities.Leave", b =>
@@ -139,8 +108,6 @@ namespace BigioHrServices.Db.Entities
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("LeaveStart")
-                        .HasColumnType("timestamp without time zone");
                     b.Property<DateOnly>("LeaveDate")
                         .HasColumnType("date");
 
@@ -163,55 +130,8 @@ namespace BigioHrServices.Db.Entities
                     b.ToTable("Leaves");
                 });
 
-            modelBuilder.Entity("BigioHrServices.Db.Entities.LogActivity", b =>
-                {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
-
-                    b.Property<string>("Activity")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("activity");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("date");
-
-                    b.Property<string>("Modul")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("modul");
-
-                    b.HasKey("ID");
-
-                    b.ToTable("LogActivities");
-                });
-
             modelBuilder.Entity("BigioHrServices.Db.Entities.Notification", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Body")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("body");
-
-                    b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("created_date");
-
-                    b.Property<string>("Data")
-                        .IsRequired()
-                        .HasMaxLength(8000)
-                        .HasColumnType("character varying(8000)")
-                        .HasColumnName("data");
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
@@ -233,17 +153,6 @@ namespace BigioHrServices.Db.Entities
                         .HasColumnType("boolean")
                         .HasColumnName("is_read");
 
-                    b.Property<DateTime?>("ReadDate")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("read_date");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("title");
-
-                    b.HasKey("Id");
                     b.Property<string>("Nik")
                         .IsRequired()
                         .HasColumnType("text")
