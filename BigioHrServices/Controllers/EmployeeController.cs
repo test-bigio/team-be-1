@@ -19,7 +19,7 @@ namespace BigioHrServices.Controllers
             //_logactivityService = logactivityService;
         }
 
-        [HttpGet("GetList")]
+        [HttpGet("v1/Users")]
         public Pageable<EmployeeResponse> GetEmployees([FromQuery] EmployeeSearchRequest request)
         {
             if (request == null) throw new Exception(RequestNull);
@@ -37,6 +37,13 @@ namespace BigioHrServices.Controllers
 
         //    return _employeeService.GetDetail(nik);
         //}
+        [HttpGet("v1/users/{nik}")]
+        public SingleReponse<EmployeeResponse> GetDetailEmployees(string nik)
+        {
+            if (nik == "") throw new Exception(RequestNull);
+
+            return _employeeService.GetDetailEmployees(nik);
+        }
 
         [HttpPost("Add")]
         public BaseResponse AddEmployee([FromBody] EmployeeAddRequest request)

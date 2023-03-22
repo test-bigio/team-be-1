@@ -1,10 +1,10 @@
 ﻿namespace BigioHrServices.Model.Datatable
 {
-    public class SingleReponse
+    public class SingleReponse<T>
     {
-        public SingleReponse()
+        public SingleReponse(List<T> items)
         {
-            Data = new List<object>();
+            Data =items;
         }
         public object Data { get; set; }
     }
