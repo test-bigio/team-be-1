@@ -85,7 +85,22 @@ namespace BigioHrServices.Services
                 .Where(p => p.NIK == nik)
                 .AsNoTracking()
                 .AsQueryable().ToList();
-            var listData = new SingleReponse<EmployeeResponse>(employee);
+
+            var data = employee
+                .Select(_employee => new EmployeeResponse
+                {
+                    NIK = _employee.NIK,
+                    Name = _employee.Name,
+                    Sex = _employee.Sex,
+                    JoinDate = _employee.JoinDate.ToString("yyy-MM-dd"),
+                    WorkLength = _employee.WorkLength,
+                    PositionCode = _employee.PositionCode,
+                    IsActive = _employee.IsActive,
+                    DigitalSignature = _employee.DigitalSignature,
+                })
+                .ToList();
+
+            var listData = new SingleReponse<EmployeeResponse>(data);
             return listData;
         }
 
