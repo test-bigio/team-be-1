@@ -79,7 +79,7 @@ namespace BigioHrServices.Services
             {
                 new Claim(ClaimTypes.NameIdentifier,user.Name),
                 new Claim(ClaimTypes.Role,user.Position),
-                new Claim("uid", user.NIK)
+                new Claim("uid", user.NIK),
             };
 
             var token = new JwtSecurityToken(

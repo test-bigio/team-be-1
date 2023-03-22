@@ -25,7 +25,7 @@ namespace BigioHrServices.Db.Entities
         public string Sex { get; set; } = string.Empty;
         [Required]
         [Column("join_date")]
-        public DateOnly JoinDate { get; set; } = new DateOnly();
+        public DateOnly JoinDate { get; set; }
         [Required]
         [Column("work_length")]
         public string WorkLength { get; set; } = string.Empty;

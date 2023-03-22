@@ -29,13 +29,23 @@ namespace BigioHrServices.Controllers
 
         [HttpPost("Add")]
         public BaseResponse AddEmployee([FromBody] EmployeeAddRequest request)
-        {
+        {Console.WriteLine("test");
             if (request == null) throw new Exception(RequestNull);
 
             var getExisting = _employeeService.GetEmployeeByNIK(request.NIK);
             if (getExisting != null) throw new Exception("NIK already exist!");
 
             _employeeService.EmployeeAdd(request);
+
+            return new BaseResponse();
+        }
+
+        [HttpPut("Update")]
+        public BaseResponse UpdateEmployee([FromBody] EmployeeAddRequest request)
+        {
+            if (request == null) throw new Exception(RequestNull);
+
+            _employeeService.EmployeeUpdate(request);
 
             return new BaseResponse();
         }
