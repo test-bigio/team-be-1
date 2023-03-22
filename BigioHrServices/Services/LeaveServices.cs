@@ -21,18 +21,23 @@ namespace BigioHrServices.Services
 	{
         private readonly ApplicationDbContext _db;
         private readonly int maxLeave = 12;
+        private readonly IEmployeeService _employeeService;
+        private readonly IPositionService _positionService;
 
-        public LeaveService(ApplicationDbContext db)
+        public LeaveService(ApplicationDbContext db, IEmployeeService employeeService, IPositionService positionService)
 		{
 			_db = db;
-		}
+            _employeeService = employeeService;
+            _positionService = positionService;
+
+        }
 
         public void Approve(int id)
         {
             // todo logic melimpahkan
             var leave = _getLeaveDataOrFail(id);
 
-            if (!leave.IsAlreadyReviewed())
+            if (leave.IsAlreadyReviewed())
             {
                 throw new Exception("Request already reviewed");
             }
@@ -135,33 +140,29 @@ namespace BigioHrServices.Services
         {
             // todo validasi matrik pelimpahan
             
-            // todo get this flag from position
-            var currentUserHaveHighestPosition = false;
+            // get reviewer
+            var reviewer = _getReviewerForNik(request.EmployeeNik);
 
-            if (currentUserHaveHighestPosition)
+            var isRequestingUserHaveHighestPosition = reviewer == null;
+
+            if (isRequestingUserHaveHighestPosition)
             {
                 // todo if user have highest position then max quota permonth = 2
             }
             else
             {
-                var quotaResponse = GetLeaveQuota(request.EmployeeNIk);
+                var quotaResponse = GetLeaveQuota(request.EmployeeNik);
                 if (quotaResponse.LeaveAvailable < 1)
                 {
                     throw new Exception("Insufficient leave quota");
                 }
             }
 
-            var reviewerNik = "SYSTEM";
-            if (!currentUserHaveHighestPosition)
-            {
-                var reviewer = _getReviewerForNik(request.EmployeeNIk);
-                reviewerNik = reviewer.NIK;
-            }
             var leaveData = new Leave
             {
-                StafNIK = request.EmployeeNIk,
-                DelegatedStafNIK = request.DelegatedNIK,
-                ReviewerNIK = reviewerNik,
+                StafNIK = request.EmployeeNik,
+                DelegatedStafNIK = request.DelegatedNiK,
+                ReviewerNIK = isRequestingUserHaveHighestPosition ? "SYSTEM" : reviewer.NIK,
                 Status = Leave.RequestStatus.InReview,
                 LeaveDate = DateOnly.FromDateTime(request.LeaveDate),
                 CreatedAt = DateTime.Now,
@@ -181,16 +182,44 @@ namespace BigioHrServices.Services
             _db.Notifications.Add(notification);
             _db.SaveChanges();
 
-            if (currentUserHaveHighestPosition)
+            if (isRequestingUserHaveHighestPosition)
             {
                 // todo: still not test this implementation
-                // Approve(leaveData.Id);
+                Approve(leaveData.Id);
             }
         }
-        private Employee _getReviewerForNik(string currentUserNik)
+        private Employee? _getReviewerForNik(string nik)
         {
-            // todo implement get reviewer for nik
-            return new Employee { NIK = "69123" };
+            var requestingUser = _employeeService.GetEmployeeByNIK(nik);
+            if (requestingUser == null)
+            {
+                throw new Exception("request employee data not found");
+            }
+            var position = _positionService.GetPositionByCode(requestingUser.PositionCode.ToLower());
+            if (position == null)
+            {
+                throw new Exception("Unexpected error");
+            }
+            var iPositionLevel = Convert.ToInt32(position.Level);
+            // get higher position (have lower number)
+            var reviewerPosition = _db.Positions
+                .AsNoTracking()
+                .Where(x => Convert.ToInt32(x.Level) < iPositionLevel)
+                .OrderByDescending(x => Convert.ToInt32(x.Level))
+                .FirstOrDefault();
+            if (reviewerPosition == null)
+            {
+                // position is highest
+                return null;
+            }
+            var reviewer = _db.Employees
+                .AsNoTracking()
+                .FirstOrDefault(x => x.PositionCode == reviewerPosition.Code);
+            if (reviewer == null)
+            {
+                throw new Exception("Unexpected error");
+            }
+            return reviewer;
         }
 
         private Leave _getLeaveDataOrFail(int id)
