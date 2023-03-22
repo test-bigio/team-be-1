@@ -43,8 +43,7 @@ namespace BigioHrServices.Services
             if (data == null) throw new Exception("Akun belum terdaftar!");
 
             // Verify the password
-            var verifiyPasswordUser = _hasher.HashString(request.Password);
-            if (!verifiyPasswordUser.Equals(data.Password)) throw new Exception("NIK atau Password yang anda masukkan salah!");
+            if (!_hasher.verifiyPassword(request.Password, data.Password)) throw new Exception("NIK atau Password yang anda masukkan salah!");
 
             // Check password expired 30 days
             var lastUpdatePassword = data.LastUpdatePassword;
@@ -107,21 +106,21 @@ namespace BigioHrServices.Services
             if (data == null) throw new Exception("Akun tidak ditemukan!");
 
             // Check current password not same with old password
-            if (!_hasher.HashString(request.CurrentPassword).Equals(data.Password)) throw new Exception("Password sekarang tidak sama!");
+            if (!_hasher.verifiyPassword(request.CurrentPassword, data.Password)) throw new Exception("Password sekarang tidak sama!");
 
             // Check if new password is same with current password
-            if (_hasher.HashString(request.NewPassword).Equals(data.Password))  throw new Exception("Password baru tidak boleh sama dengan password sekarang!");
+            if (_hasher.verifiyPassword(request.NewPassword, data.Password))  throw new Exception("Password baru tidak boleh sama dengan password sekarang!");
 
             // If validation success save new password into database
             try 
             {
                 data.Password = _hasher.HashString(request.NewPassword);
+                _db.Employees.Update(data);
                 _db.SaveChanges();
-                return;
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
     }
