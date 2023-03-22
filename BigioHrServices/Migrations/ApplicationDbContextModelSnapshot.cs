@@ -22,6 +22,22 @@ namespace BigioHrServices.Db.Entities
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("BigioHrServices.Db.Entities.Delegation", b =>
+                {
+                    b.Property<string>("NIK")
+                        .HasColumnType("text")
+                        .HasColumnName("nik");
+
+                    b.Property<string>("ParentNIK")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("parent_nik");
+
+                    b.HasKey("NIK");
+
+                    b.ToTable("Delegations");
+                });
+
             modelBuilder.Entity("BigioHrServices.Db.Entities.Employee", b =>
             {
                 b.Property<string>("NIK")
@@ -71,6 +87,46 @@ namespace BigioHrServices.Db.Entities
                 b.ToTable("Employees");
             });
 
+            modelBuilder.Entity("BigioHrServices.Db.Entities.Leave", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DelegatedStafNIK")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("LeaveStart")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReviewerNIK")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("StafNIK")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TotalLeaveInDays")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Leaves");
+                });
+
             modelBuilder.Entity("BigioHrServices.Db.Entities.Notification", b =>
             {
                 b.Property<string>("Id")
@@ -109,91 +165,66 @@ namespace BigioHrServices.Db.Entities
 
                 b.HasKey("Id");
 
-                b.ToTable("Notifications");
-            });
+                    b.ToTable("Notifications");
+                });
 
             modelBuilder.Entity("BigioHrServices.Db.Entities.Leave", b =>
-            {
-                b.Property<int>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("integer");
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
 
-                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                b.Property<DateTime>("CreatedAt")
-                    .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
-                b.Property<string>("DelegatedStafNIK")
-                    .IsRequired()
-                    .HasColumnType("text");
+                    b.Property<string>("DelegatedStafNIK")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                b.Property<DateTime>("LeaveStart")
-                    .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime>("LeaveStart")
+                        .HasColumnType("timestamp with time zone");
 
-                b.Property<string>("ReviewerNIK")
-                    .IsRequired()
-                    .HasColumnType("text");
+                    b.Property<string>("ReviewerNIK")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                b.Property<string>("StafNIK")
-                    .IsRequired()
-                    .HasColumnType("text");
+                    b.Property<string>("StafNIK")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                b.Property<int>("Status")
-                    .HasColumnType("integer");
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
-                b.Property<DateTime>("UpdatedAt")
-                    .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
-                b.HasKey("Id");
+                    b.HasKey("Id");
 
-                b.ToTable("Leaves");
-            });
+                    b.ToTable("Leaves");
+                });
 
             modelBuilder.Entity("BigioHrServices.Db.Entities.Delegation", b =>
-            {
-                b.Property<int>("ID")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("integer");
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
 
-                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
 
-                b.Property<string>("NIK")
-                    .IsRequired()
-                    .HasColumnType("text");
+                    b.Property<string>("NIK")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                b.Property<string>("ParentNIK")
-                    .IsRequired()
-                    .HasColumnType("text");
+                    b.Property<string>("ParentNIK")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                b.HasKey("ID");
+                    b.HasKey("ID");
 
-                b.ToTable("Delegations");
-            });
-
-            modelBuilder.Entity("BigioHrServices.Db.Entities.Position", b =>
-            {
-                b.Property<string>("Code")
-                    .HasColumnType("text")
-                    .HasColumnName("code");
-
-                b.Property<bool>("IsActive")
-                    .HasColumnType("boolean")
-                    .HasColumnName("is_active");
-
-                b.Property<string>("Level")
-                    .IsRequired()
-                    .HasColumnType("text")
-                    .HasColumnName("level");
-
-                b.Property<string>("Name")
-                    .IsRequired()
-                    .HasColumnType("text")
-                    .HasColumnName("name");
-
-                b.HasKey("Code");
-
-                b.ToTable("Positions");
-            });
+                    b.ToTable("Delegations");
+                });
 #pragma warning restore 612, 618
         }
     }
