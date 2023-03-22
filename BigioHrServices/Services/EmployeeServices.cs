@@ -14,11 +14,13 @@ namespace BigioHrServices.Services
     public interface IEmployeeService
     {
         public Pageable<EmployeeResponse> GetList(EmployeeSearchRequest request);
-        public EmployeeResponse GetEmployeeByNIK(string nik);
+        public Employee GetEmployeeByNIK(string nik);
+        public Employee GetEmployeeById(long id);
         public SingleReponse GetDetail(string nik);
         public void EmployeeAdd(EmployeeAddRequest request);
         public void EmployeeUpdate(EmployeeUpdateRequest request);
         public void EmployeeDelete(string nik);
+
     }
     public class EmployeeServices : IEmployeeService
     {
@@ -75,26 +77,21 @@ namespace BigioHrServices.Services
             return pagedData;
         }
 
-        public EmployeeResponse GetEmployeeByNIK(string nik)
+        public Employee GetEmployeeByNIK(string nik)
         {
             return _db.Employees
                 .Where(p => p.NIK.ToLower() == nik)
                 .AsNoTracking()
-                .Select(_employee => new EmployeeResponse
-                {
-                    NIK = _employee.NIK,
-                    Name = _employee.Name,
-                    Sex = _employee.Sex,
-                    JoinDate = _employee.JoinDate.ToString("yyy-MM-dd"),
-                    WorkLength = _employee.WorkLength,
-                    PositionCode = _employee.PositionCode,
-                    IsActive = _employee.IsActive,
-                    DigitalSignature = _employee.DigitalSignature,
-                })
                 .FirstOrDefault();
-            /*if (data == null) throw new Exception("NIK tidak ada!");
-            return data;*/
         }
+
+
+        public Employee GetEmployeeById(long id)
+        {
+            return _db.Employees
+                .Find(id);
+        }
+
 
         public SingleReponse GetDetail(string nik)
         {
@@ -140,10 +137,11 @@ namespace BigioHrServices.Services
                     Sex = request.Sex,
                     JoinDate = DateOnly.ParseExact(request.JoinDate, "yyyy-MM-dd"),
                     WorkLength = request.WorkLength,
-                    PositionID = request.PositionID,
+                    PositionCode = request.PositionID,
                     Password = "Pegawai",
                     DigitalSignature = "101010",
-                    IsActive = true
+                    IsActive = true,
+                    Email = request.Email
                 }); ;
                 _db.SaveChanges();
             }
@@ -165,7 +163,7 @@ namespace BigioHrServices.Services
                     data.Sex = request.Sex;
                     data.JoinDate = DateOnly.ParseExact(request.JoinDate, "yyyy-MM-dd");
                     data.WorkLength = request.WorkLength;
-                    data.PositionID = request.PositionId;
+                    data.PositionCode = request.PositionId;
                     data.UpdatedBy = null;
                     data.UpdatedDate = DateTime.UtcNow;
                     data.IsOnLeave = request.IsOnLeave;

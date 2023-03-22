@@ -7,7 +7,7 @@
         public string Sex { get; set; } = string.Empty;
         public string JoinDate { get; set; } = string.Empty;
         public string WorkLength { get; set; } = string.Empty;
-        public long PositionId { get; set; } = 0;
+        public string PositionId { get; set; }
         public bool IsOnLeave { get; set; } = false;
         public string Email { get; set; } = string.Empty;
     }

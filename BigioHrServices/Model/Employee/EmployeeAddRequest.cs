@@ -7,6 +7,7 @@
         public string Sex { get; set; } = string.Empty;
         public string JoinDate { get; set; } = string.Empty;
         public string WorkLength { get; set; } = string.Empty;
-        public long PositionID { get; set; }
+        public string? PositionID { get; set; }
+        public string Email { get; set; } = string.Empty;
     }
 }

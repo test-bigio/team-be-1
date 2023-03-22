@@ -29,9 +29,6 @@ namespace BigioHrServices.Db.Entities
         [Column("work_length")]
         public string WorkLength { get; set; } = string.Empty;
         [Required]
-        [Column("position_id")]
-        public long PositionID { get; set; }
-        [Required]
         [Column("is_active")]
         public bool IsActive { get; set; }
         [Required]
@@ -48,7 +45,7 @@ namespace BigioHrServices.Db.Entities
         [Required]
         [Column("is_on_leave")]
         public bool IsOnLeave { get; set; } = false;
-        [Column("position_code")]
+        [Column("position_id")]
         [ForeignKey("Positions")]
         public string PositionCode { get; set; }
         [Required]
