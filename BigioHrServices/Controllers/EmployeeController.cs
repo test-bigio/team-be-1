@@ -24,24 +24,18 @@ namespace BigioHrServices.Controllers
 
             request.Page = request.Page <= 0 ? 1 : request.Page;
             request.PageSize = request.PageSize <= 0 ? 10 : request.PageSize;
-            //_logactivityService.LogActivityAdd(DateTime.Now, "Employee", "GetList");
+
             return _employeeService.GetList(request);
         }
 
-        //[HttpGet("GetDetail")]
-        //public SingleReponse GetDetail([FromBody] string nik)
-        //{
-        //    if (nik == null) throw new Exception(RequestNull);
-
-        //    return _employeeService.GetDetail(nik);
-        //}
         [HttpGet("v1/users/{nik}")]
-        public SingleReponse<EmployeeResponse> GetDetailEmployees(string nik)
+        public EmployeeResponse GetDetailEmployees(string nik)
         {
-            if (nik == "") throw new Exception(RequestNull);
+            if (nik == null) throw new Exception(RequestNull);
 
             return _employeeService.GetDetailEmployees(nik);
         }
+
 
         [HttpPost("Add")]
         public BaseResponse AddEmployee([FromBody] EmployeeAddRequest request)

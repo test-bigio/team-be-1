@@ -16,9 +16,8 @@ namespace BigioHrServices.Services
     public interface IEmployeeService
     {
         public Pageable<EmployeeResponse> GetList(EmployeeSearchRequest request);
-        public SingleReponse<EmployeeResponse> GetDetailEmployees(string nik);
+        public EmployeeResponse GetDetailEmployees(string nik);
         public Employee GetEmployeeByNIK(string nik);
-        public Employee GetEmployeeById(long id);
         public void EmployeeAdd(EmployeeAddRequest request);
         public void EmployeeUpdate(EmployeeUpdateRequest request);
         public void EmployeeDelete(string nik);
@@ -52,7 +51,7 @@ namespace BigioHrServices.Services
             {
                 query = query.Where(p => p.JoinDate < DateOnly.ParseExact(request.JoinDateRangeEnd, "yyy-MM-dd"));
             }
-           
+
 
             var data = query
                 .Select(_employee => new EmployeeResponse
@@ -80,14 +79,9 @@ namespace BigioHrServices.Services
             return pagedData;
         }
 
-        public SingleReponse<EmployeeResponse> GetDetailEmployees(string nik)
+        public EmployeeResponse GetDetailEmployees(string nik)
         {
-            var employee = _db.Employees
-                .Where(p => p.NIK == nik)
-                .AsNoTracking()
-                .AsQueryable().ToList();
-
-            var data = employee
+            var data = _db.Employees
                 .Select(_employee => new EmployeeResponse
                 {
                     NIK = _employee.NIK,
@@ -99,10 +93,8 @@ namespace BigioHrServices.Services
                     IsActive = _employee.IsActive,
                     DigitalSignature = _employee.DigitalSignature,
                 })
-                .ToList();
-
-            var listData = new SingleReponse<EmployeeResponse>(data);
-            return listData;
+                .FirstOrDefault(p => p.NIK == nik);
+            return data;
         }
 
         public Employee GetEmployeeByNIK(string nik)
@@ -113,23 +105,13 @@ namespace BigioHrServices.Services
                 .FirstOrDefault();
         }
 
-
-        public Employee GetEmployeeById(long id)
-        {
-            return _db.Employees
-                .Find(id);
-        }
-
-
-       
         public void EmployeeAdd(EmployeeAddRequest request)
         {
-            var data = _db.Employees
-                .Where(p => p.NIK.ToLower() == request.NIK)
-                .AsNoTracking()
-                .FirstOrDefault();
+            var data = GetEmployeeByNIK(request.NIK);
             if (data != null) throw new Exception("NIK sudah ada!");
+
             string hashPassword = Hasher.HashString2("Pegawai");
+            string hashDigitalPin = Hasher.HashString2("101010");
 
             try
             {
@@ -142,7 +124,7 @@ namespace BigioHrServices.Services
                     WorkLength = request.WorkLength,
                     PositionCode = request.PositionID,
                     Password = hashPassword,
-                    DigitalSignature = "101010",
+                    DigitalSignature = hashDigitalPin,
                     IsActive = true,
                     Email = request.Email
                 };
@@ -190,23 +172,25 @@ namespace BigioHrServices.Services
         public void EmployeeDelete(string nik)
         {
             var data = _db.Employees.SingleOrDefault(p => p.NIK == nik);
+            // var leave = _db.Leaves.SingleOrDefault(p => p.DelegatedStafNIK == data.NIK);
             if (data == null) throw new Exception("NIK Tidak Ditemukan!");
-            if (Convert.ToInt32(data.CreatedDate.ToString("yyyMMdd")) > Convert.ToInt32(DateTime.Now.ToString("yyyMMdd")) )
+            // if (Convert.ToInt32(leave.LeaveDate.ToString("yyyMMdd")) > Convert.ToInt32(DateTime.Now.ToString("yyyMMdd")))
+            // {
+            try
             {
-                try
-                {
-                    data.IsActive = false;
-                    _db.SaveChanges();
-                }
-                catch (Exception ex)
-                {
-                    throw ex;
-                }
-            }else
-            {
-                throw new Exception("Pegawai Dalam Pelimpahan Wewenang");
+                data.IsActive = false;
+                _db.SaveChanges();
             }
-           
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            //     }
+            //         else
+            //         {
+            //             throw new Exception("Pegawai Dalam Pelimpahan Wewenang");
+            // }
+
         }
     }
 }
