@@ -4,5 +4,6 @@ namespace BigioHrServices.Model.Delegation
     {
         public string NIK { get; set; } = string.Empty;
         public string ParentNIK { get; set; } = string.Empty;
+        public int Priority { get; set; }
     }
 }
