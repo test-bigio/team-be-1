@@ -12,7 +12,7 @@ namespace BigioHrServices.Services
         void Reject(int id);
         LeaveQuotaResponse GetLeaveQuota(string id);
         DatatableResponse GetLeaveHistory(string id, LeaveHistoryRequest request);
-        void AddNewLeaveRequest(AddNewLeaveRequest request, string currentUserNik);
+        void AddNewLeaveRequest(AddNewLeaveRequest request);
     }
 
     public class LeaveService : ILeaveService
@@ -53,25 +53,20 @@ namespace BigioHrServices.Services
 
         public LeaveQuotaResponse GetLeaveQuota(string nik)
         {
-            int totalLeave = 0;
             int currentYear = DateTime.Now.Year;
-            DateTime firstDay = new DateTime(currentYear, 1, 1);
-            DateTime lastDay = new DateTime(currentYear, 12, 31);
+            DateOnly firstDay = new DateOnly(currentYear, 1, 1);
+            DateOnly lastDay = new DateOnly(currentYear, 12, 31);
 
             var employee = _db.Employees.SingleOrDefault(employee => employee.NIK == nik);
             if (employee == null) throw new Exception("Employee not found");
             
             //get employee quota, base on current year 
-            var leaves = _db.Leaves
+            var totalLeave = _db.Leaves
                 .Where(leave => leave.StafNIK == nik)
                 .Where(leave => leave.Status == Db.Entities.Leave.RequestStatus.Approved)
-                .Where(leave => leave.LeaveStart.Date >= firstDay && leave.LeaveStart.Date <= lastDay)
-                .ToList();
-
-            foreach (var leave in leaves)
-            {
-                totalLeave += leave.TotalLeaveInDays;
-            }
+                .Where(leave => leave.LeaveDate >= firstDay && leave.LeaveDate <= lastDay)
+                .ToList()
+                .Count();
 
             return new LeaveQuotaResponse
             {
@@ -83,22 +78,22 @@ namespace BigioHrServices.Services
         {
             int currentYear = DateTime.Now.Year;
             if (!string.IsNullOrEmpty(request.Search)) currentYear = Int16.Parse(request.Search);
-            DateTime firstDay = new DateTime(currentYear, 1, 1);
-            DateTime lastDay = new DateTime(currentYear, 12, 31);
+            DateOnly firstDay = new DateOnly(currentYear, 1, 1);
+            DateOnly lastDay = new DateOnly(currentYear, 12, 31);
             
             var employee = _db.Employees.SingleOrDefault(employee => employee.NIK == nik);
             if (employee == null) throw new Exception("Employee not found");
             var totalRecord = _db.Leaves
                 .Where(leave => leave.StafNIK == nik)
                 .Where(leave => leave.Status == Db.Entities.Leave.RequestStatus.Approved)
-                .Where(leave => leave.LeaveStart.Date >= firstDay && leave.LeaveStart.Date <= lastDay)
+                .Where(leave => leave.LeaveDate >= firstDay && leave.LeaveDate <= lastDay)
                 .Select(leave => leave.StafNIK)
                 .Count();
             
             var leaves = _db.Leaves
                 .Where(leave => leave.StafNIK == nik)
                 .Where(leave => leave.Status == Db.Entities.Leave.RequestStatus.Approved)
-                .Where(leave => leave.LeaveStart.Date >= firstDay && leave.LeaveStart.Date <= lastDay)
+                .Where(leave => leave.LeaveDate >= firstDay && leave.LeaveDate <= lastDay)
                 .Skip((request.Page - 1 )* request.PageSize)
                 .Take(request.PageSize)
                 .ToList();
@@ -112,33 +107,39 @@ namespace BigioHrServices.Services
                 PrevPage = request.Page > 1,
             };
         }
-        public void AddNewLeaveRequest(AddNewLeaveRequest request, string currentUserNik)
+        public void AddNewLeaveRequest(AddNewLeaveRequest request)
         {
+            // todo validasi matrik pelimpahan
+            
             // todo get this flag from position
             var currentUserHaveHighestPosition = false;
+
             if (currentUserHaveHighestPosition)
             {
                 // todo if user have highest position then max quota permonth = 2
             }
             else
             {
-                var quotaResponse = GetLeaveQuota(currentUserNik);
-                if (quotaResponse.LeaveAvailable < request.TotalLeaveInDays)
+                var quotaResponse = GetLeaveQuota(request.EmployeeNIk);
+                if (quotaResponse.LeaveAvailable < 1)
                 {
                     throw new Exception("Insufficient leave quota");
                 }
             }
-            // todo validasi matrik pelimpahan
-            
-            var reviewer = _getReviewerForNik(currentUserNik);
+
+            var reviewerNik = "SYSTEM";
+            if (!currentUserHaveHighestPosition)
+            {
+                var reviewer = _getReviewerForNik(request.EmployeeNIk);
+                reviewerNik = reviewer.NIK;
+            }
             var leaveData = new Leave
             {
-                StafNIK = currentUserNik,
+                StafNIK = request.EmployeeNIk,
                 DelegatedStafNIK = request.DelegatedNIK,
-                ReviewerNIK = reviewer.NIK,
+                ReviewerNIK = reviewerNik,
                 Status = Leave.RequestStatus.InReview,
-                LeaveStart = request.LeaveStart,
-                TotalLeaveInDays = request.TotalLeaveInDays,
+                LeaveDate = DateOnly.FromDateTime(request.LeaveDate),
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
@@ -146,7 +147,7 @@ namespace BigioHrServices.Services
             _db.SaveChanges();
             if (currentUserHaveHighestPosition)
             {
-                // still not test this implementation
+                // todo: still not test this implementation
                 // Approve(leaveData.Id);
             }
         }
