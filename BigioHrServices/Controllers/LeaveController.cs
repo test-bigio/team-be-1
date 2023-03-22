@@ -9,6 +9,7 @@ using BigioHrServices.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace BigioHrServices.Controllers
 {
@@ -27,10 +28,8 @@ namespace BigioHrServices.Controllers
         [HttpPost("requests")]
         public BaseResponse NewRequest(AddNewLeaveRequest request)
         {
-            // todo get nik from current session
-            var currentUserNik = "123123"; 
             // todo validate pin token
-            _leaveService.AddNewLeaveRequest(request, currentUserNik);
+            _leaveService.AddNewLeaveRequest(request);
             return new BaseResponse();
         }
 
