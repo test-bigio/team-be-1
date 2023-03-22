@@ -33,7 +33,7 @@ namespace BigioHrServices.Controllers
             return new BaseResponse();
         }
 
-        [HttpPut("auth/add_pin")]
+        [HttpPost("auth/add_pin")]
         public BaseResponse AddPinSignature([FromBody] AddPinSignatureRequest request)
         {
             if (request == null) throw new Exception(RequestNull);
