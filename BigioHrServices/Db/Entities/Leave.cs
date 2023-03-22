@@ -16,6 +16,7 @@ namespace BigioHrServices.Db.Entities
 		public string ReviewerNIK { get; set; } = string.Empty;
 		public RequestStatus Status { get; set; }
 		public DateTime LeaveStart { get; set; }
+		public int TotalLeaveInDays { get; set; }
 		public DateTime CreatedAt { get; set; }
 		public DateTime UpdatedAt { get; set; }
 	}
