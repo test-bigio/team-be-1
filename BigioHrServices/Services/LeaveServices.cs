@@ -13,7 +13,6 @@ namespace BigioHrServices.Services
         void Reject(int id);
         LeaveQuotaResponse GetLeaveQuota(string id);
         DatatableResponse GetLeaveHistory(string id, LeaveHistoryRequest request);
-        void AddNewLeaveRequest(AddNewLeaveRequest request, string currentUserNik);
         public DatatableResponse GetList(LeaveSearchRequest request);
         void AddNewLeaveRequest(AddNewLeaveRequest request);
     }
@@ -234,11 +233,11 @@ namespace BigioHrServices.Services
                 case "createdat_desc":
                     query = query.OrderByDescending(leave => leave.CreatedAt);
                     break;
-                case "leavestart":
-                    query = query.OrderBy(leave => leave.LeaveStart);
+                case "leavedate":
+                    query = query.OrderBy(leave => leave.LeaveDate);
                     break;
                 case "leavestart_desc":
-                    query = query.OrderByDescending(leave => leave.LeaveStart);
+                    query = query.OrderByDescending(leave => leave.LeaveDate);
                     break;
                 default:
                     query = query.OrderBy(leave => leave.Id);
@@ -253,10 +252,9 @@ namespace BigioHrServices.Services
                     DelegatedStafNIK = _leave.DelegatedStafNIK,
                     ReviewerNIK = _leave.ReviewerNIK,
                     Status = _leave.Status.ToString(),
-                    LeaveStart = _leave.LeaveStart,
+                    LeaveDate = _leave.LeaveDate,
                     CreatedAt = _leave.CreatedAt,
                     UpdatedAt = _leave.UpdatedAt,
-                    TotalLeaveInDays = _leave.TotalLeaveInDays
                 })
                 .ToList();
 
