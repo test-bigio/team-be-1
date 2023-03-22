@@ -3,17 +3,19 @@ using System;
 using BigioHrServices.Db;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace BigioHrServices.Db.Entities
+namespace BigioHrServices.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230322055302_AddInitialTableNotification")]
+    partial class AddInitialTableNotification
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,22 +23,6 @@ namespace BigioHrServices.Db.Entities
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("BigioHrServices.Db.Entities.Delegation", b =>
-                {
-                    b.Property<string>("NIK")
-                        .HasColumnType("text")
-                        .HasColumnName("nik");
-
-                    b.Property<string>("ParentNIK")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("parent_nik");
-
-                    b.HasKey("NIK");
-
-                    b.ToTable("Delegations");
-                });
 
             modelBuilder.Entity("BigioHrServices.Db.Entities.Employee", b =>
                 {
@@ -85,46 +71,6 @@ namespace BigioHrServices.Db.Entities
                     b.HasKey("NIK");
 
                     b.ToTable("Employees");
-                });
-
-            modelBuilder.Entity("BigioHrServices.Db.Entities.Leave", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("DelegatedStafNIK")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("LeaveStart")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ReviewerNIK")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("StafNIK")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("TotalLeaveInDays")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Leaves");
                 });
 
             modelBuilder.Entity("BigioHrServices.Db.Entities.Notification", b =>
