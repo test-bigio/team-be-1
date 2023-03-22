@@ -58,15 +58,5 @@ namespace BigioHrServices.Controllers
 
             return new BaseResponse();
         }
-
-        [HttpPut("update-status-notification-by-employee-id/{id}")]
-        public BaseResponse UpdateStatusNotificationByEmployeeId(string id, string nik)
-        {
-            if (id == null) throw new Exception(RequestNull);
-
-            _notificationService.UpdateStatusNotificationByEmployeeId(id, nik);
-
-            return new BaseResponse();
-        }
     }
 }

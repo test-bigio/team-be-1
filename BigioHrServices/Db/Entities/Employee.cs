@@ -40,7 +40,10 @@ namespace BigioHrServices.Db.Entities
         public string Password { get; set; }
         [Required]
         [Column("digital_signature")]
-        public string DigitalSignature { get; set; }
+        public string DigitalSignature { get; set; } = "101010";
+        [Required]
+        [Column("last_update_password")]
+        public DateTime LastUpdatePassword { get; set; }
 
     }
 }
