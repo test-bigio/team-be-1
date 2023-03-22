@@ -31,6 +31,9 @@ namespace BigioHrServices.Db.Entities
         [Column("read_date")]
         public DateTime? ReadDate { get; set; }
 
+        [Column("created_date")]
+        public DateTime? CreatedDate { get; set; }
+
         //public virtual User User { get; set; }
 
         /// <summary>
