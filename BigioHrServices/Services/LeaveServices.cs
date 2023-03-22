@@ -37,6 +37,17 @@ namespace BigioHrServices.Services
             
             leave.Status = Leave.RequestStatus.Approved;
             _db.SaveChanges();
+
+            // add to notification
+            var notification = new Notification
+            {
+                Nik = leave.StafNIK,
+                Title = "Status Pengajuan Cuti",
+                Body = "Disetujui",
+                CreatedDate = DateTime.UtcNow,
+            };
+            _db.Notifications.Add(notification);
+            _db.SaveChanges();
         }
 
         public void Reject(int id)
@@ -48,6 +59,17 @@ namespace BigioHrServices.Services
                 throw new Exception("Request already reviewed");
             }
             leave.Status = Leave.RequestStatus.Rejected;
+            _db.SaveChanges();
+
+            // add to notification
+            var notification = new Notification
+            {
+                Nik = leave.StafNIK,
+                Title = "Status Pengajuan Cuti",
+                Body = "Ditolak",
+                CreatedDate = DateTime.UtcNow,
+            };
+            _db.Notifications.Add(notification);
             _db.SaveChanges();
         }
 
@@ -145,6 +167,18 @@ namespace BigioHrServices.Services
             };
             _db.Leaves.Add(leaveData);
             _db.SaveChanges();
+
+            // add to notification
+            var notification = new Notification
+            {
+                Nik = leaveData.StafNIK,
+                Title = "Pengajuan Cuti Baru",
+                Body = "Pengajuan cuti dari pegawai dengan nik "+ leaveData.StafNIK + "silahkan di review",
+                CreatedDate = DateTime.UtcNow,
+            };
+            _db.Notifications.Add(notification);
+            _db.SaveChanges();
+
             if (currentUserHaveHighestPosition)
             {
                 // todo: still not test this implementation
