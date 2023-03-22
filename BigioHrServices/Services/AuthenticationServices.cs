@@ -43,7 +43,6 @@ namespace BigioHrServices.Services
                 .AsNoTracking()
                 .FirstOrDefault();
 
-            if (data == null) throw new Exception("NIK atau password tidak sesuai!");
             // Check account is not registered
             if (data == null) throw new Exception("Akun belum terdaftar!");
 
@@ -146,6 +145,9 @@ namespace BigioHrServices.Services
         #region MethodAddPinSignature
         public BaseResponse AddPinSignature(AddPinSignatureRequest request)
         {
+            // Hash new pin signature
+            var digitalSignatureHashed = _hasher.HashString(request.newPinSignature);
+
             // Get data employee by nik
             var data = _db.Employees
                         .Where(x => x.NIK.ToLower().Equals(request.NIK))
@@ -158,12 +160,12 @@ namespace BigioHrServices.Services
             try
             {
                 // TODO: If pass validation save pin signature to tabel
-                data.DigitalSignature = _hasher.HashString(request.newPinSignature);
+                data.DigitalSignature = digitalSignatureHashed;
                 _db.Employees.Update(data);
                 _db.DigitalPinLogs.Add(new DigitalPinLog
                 {
                     StaffId = data.NIK,
-                    Pin = _hasher.HashString(request.newPinSignature),
+                    Pin = digitalSignatureHashed,
                     CreatedAt = DateTime.Now
                 });
 
@@ -185,27 +187,45 @@ namespace BigioHrServices.Services
         #region MethodUpdatePinSignature
         public BaseResponse UpdatePinSignature(UpdatePinSignatureRequest request)
         {
+            // Hash new pin signature
+            var digitalSignatureHashed = _hasher.HashString(request.newPinSignature);
+            
             // Get data employee by nik
             var data = _db.Employees
                         .Where(x => x.NIK.ToLower().Equals(request.NIK))
                         .AsNoTracking()
                         .FirstOrDefault();
             
+            var historyPin = _db.DigitalPinLogs
+                            .Where(x => (x.StaffId.ToLower().Equals(request.NIK)) && (x.Pin.Equals(digitalSignatureHashed)))
+                            .AsNoTracking()
+                            .OrderByDescending(x => x.CreatedAt)
+                            .FirstOrDefault();
+            
             // Check if data employee not found
             if (data == null) throw new Exception("Akun tidak ditemukan!");
 
             // Check current signature
-            if (!_hasher.verivyPIN(request.oldPinSignature, data.DigitalSignature)) throw new Exception("Pin sekarang tidak sesuai!"); 
+            if (!_hasher.verivyPIN(request.oldPinSignature, data.DigitalSignature)) throw new Exception("PIN sekarang tidak sesuai!"); 
+
+            // Check new signature must not equal with current signature
+            if (_hasher.verivyPIN(request.newPinSignature, data.DigitalSignature)) throw new Exception("PIN baru tidak boleh sama dengan PIN sekarang");
+
+            // Check if signatures have been used
+            if (historyPin != null)
+            {
+                if (_hasher.verivyPIN(request.newPinSignature, historyPin.Pin)) throw new Exception("PIN pernah digunakan sebelumnya!");
+            }
 
             try
             {
                 // TODO: If pass validation save pin signature to tabel
-                data.DigitalSignature = _hasher.HashString(request.newPinSignature);
+                data.DigitalSignature = digitalSignatureHashed;
                 _db.Employees.Update(data);
                 _db.DigitalPinLogs.Add(new DigitalPinLog
                 {
                     StaffId = data.NIK,
-                    Pin = _hasher.HashString(request.newPinSignature),
+                    Pin = digitalSignatureHashed,
                     CreatedAt = DateTime.Now
                 });
 
