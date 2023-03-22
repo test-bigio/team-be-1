@@ -33,5 +33,14 @@ namespace BigioHrServices.Controllers
             return new BaseResponse();
         }
 
+        [HttpPut("auth/add_digital_signature")]
+        public BaseResponse AddPinSignature([FromBody] AddPinSignatureRequest request)
+        {
+            if (request == null) throw new Exception(RequestNull);
+
+            _authService.AddPinSignature(request);
+            return new BaseResponse();
+        }
+
     }
 }

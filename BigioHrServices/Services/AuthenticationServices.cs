@@ -1,5 +1,6 @@
 ﻿using BigioHrServices.Db;
 using BigioHrServices.Db.Entities;
+using BigioHrServices.Model;
 using BigioHrServices.Model.Authentication;
 using BigioHrServices.Utilities;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +17,8 @@ namespace BigioHrServices.Services
     public interface IAuthenticationService
     {
         public LoginResponse Login(LoginRequest request);
-        public void ResetPassword(ResetPasswordRequest request);
+        public BaseResponse ResetPassword(ResetPasswordRequest request);
+        public BaseResponse AddPinSignature(AddPinSignatureRequest request);
     }
     public class AuthenticationServices : IAuthenticationService
     {
@@ -31,7 +33,8 @@ namespace BigioHrServices.Services
             _hasher = hasher;
         }
 
-        // Method to login
+
+        #region MethodLogin
         public LoginResponse Login(LoginRequest request)
         {
             var data = _db.Employees
@@ -49,18 +52,20 @@ namespace BigioHrServices.Services
             var lastUpdatePassword = data.LastUpdatePassword;
             var dateNow = DateTime.Now;
             TimeSpan rangeDates = dateNow - lastUpdatePassword;
-            int totalDays = (int)rangeDates.TotalDays + 1;
-
+            int totalDays = (int)rangeDates.TotalDays + 1;          
             if (totalDays >= 30) throw new Exception("Password anda sudah kadaluarsa, mohon untuk reset password!");
 
             string token = "";
+            
+            // TODO: If pass validation generate token login
             try
             {
                 token = GenerateToken(data);
             }
             catch (Exception ex)
             {
-                throw new Exception("Terjadi kesalahan");
+                // throw new Exception("Terjadi kesalahan");
+                throw ex;
             }
 
             LoginResponse response = new LoginResponse();
@@ -68,8 +73,10 @@ namespace BigioHrServices.Services
 
             return response;
         }
+        #endregion
 
-        // To generate token login
+
+        #region GenerateTokenLogin
         private string GenerateToken(Employee user)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
@@ -92,9 +99,11 @@ namespace BigioHrServices.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+        #endregion
 
-        // Method to reset password
-        public void ResetPassword(ResetPasswordRequest request)
+
+        #region MethodResetPassword
+        public BaseResponse ResetPassword(ResetPasswordRequest request)
         {
             // Get data employee by nik
             var data = _db.Employees
@@ -111,7 +120,7 @@ namespace BigioHrServices.Services
             // Check if new password is same with current password
             if (_hasher.verifiyPassword(request.NewPassword, data.Password))  throw new Exception("Password baru tidak boleh sama dengan password sekarang!");
 
-            // If validation success save new password into database
+            // TODO: If pass validation save new password into table
             try 
             {
                 data.Password = _hasher.HashString(request.NewPassword);
@@ -119,11 +128,55 @@ namespace BigioHrServices.Services
                 
                 _db.Employees.Update(data);
                 _db.SaveChanges();
+
+                return new BaseResponse
+                {
+                    Message = "Reset password berhasil, silahkan login kembali"
+                };
             }
             catch (Exception ex)
             {
-                throw;
+                throw ex;
             }
         }
+        #endregion
+
+        
+        #region MethodAddPinSignature
+        public BaseResponse AddPinSignature(AddPinSignatureRequest request)
+        {
+            // Get data employee by nik
+            var data = _db.Employees
+                        .Where(x => x.NIK.ToLower().Equals(request.NIK))
+                        .AsNoTracking()
+                        .FirstOrDefault();
+            
+            // Check if data employee not found
+            if (data == null) throw new Exception("Akun tidak ditemukan!");
+
+            try
+            {
+                // TODO: If pass validation save pin signature to tabel
+                data.DigitalSignature = _hasher.HashString(request.newPinSignature);
+                _db.Employees.Update(data);
+                _db.DigitalPinLogs.Add(new DigitalPinLog
+                {
+                    EmployeeId = data.NIK,
+                    DigitalSignature = _hasher.HashString(request.newPinSignature)
+                });
+
+                _db.SaveChanges();
+
+                return new BaseResponse
+                {
+                    Message = "Digital signature telah ditambahkan"
+                };
+            } catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        #endregion
+
     }
 }
