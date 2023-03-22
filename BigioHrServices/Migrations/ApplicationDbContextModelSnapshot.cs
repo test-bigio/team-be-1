@@ -107,6 +107,27 @@ namespace BigioHrServices.Migrations
 
                     b.ToTable("Leaves");
                 });
+
+            modelBuilder.Entity("BigioHrServices.Db.Entities.Delegation", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
+
+                    b.Property<string>("NIK")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ParentNIK")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("Delegations");
+                });
 #pragma warning restore 612, 618
         }
     }
