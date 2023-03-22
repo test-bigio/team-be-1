@@ -3,20 +3,26 @@ using BigioHrServices.Db.Entities;
 using BigioHrServices.Model;
 using BigioHrServices.Model.Datatable;
 using BigioHrServices.Model.Employee;
+using BigioHrServices.Utilities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Globalization;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace BigioHrServices.Services
 {
     public interface IEmployeeService
     {
-        public DatatableResponse GetList(EmployeeSearchRequest request);
-        public EmployeeResponse GetEmployeeByNIK(string nik);
+        public Pageable<EmployeeResponse> GetList(EmployeeSearchRequest request);
+        public SingleReponse<EmployeeResponse> GetDetailEmployees(string nik);
+        public Employee GetEmployeeByNIK(string nik);
+        public Employee GetEmployeeById(long id);
         public void EmployeeAdd(EmployeeAddRequest request);
-        public void EmployeeUpdate(EmployeeAddRequest request);
+        public void EmployeeUpdate(EmployeeUpdateRequest request);
+        public void EmployeeDelete(string nik);
+
     }
     public class EmployeeServices : IEmployeeService
     {
@@ -26,11 +32,11 @@ namespace BigioHrServices.Services
             _db = db;
         }
 
-        public DatatableResponse GetList(EmployeeSearchRequest request)
+        public Pageable<EmployeeResponse> GetList(EmployeeSearchRequest request)
         {
 
             var query = _db.Employees
-                //.Where(p => p.IsActive == request.IsActive)
+                .Where(p => p.IsActive == request.IsActive)
                 .AsNoTracking()
                 .AsQueryable();
             if (!string.IsNullOrEmpty(request.Search))
@@ -46,6 +52,7 @@ namespace BigioHrServices.Services
             {
                 query = query.Where(p => p.JoinDate < DateOnly.ParseExact(request.JoinDateRangeEnd, "yyy-MM-dd"));
             }
+           
 
             var data = query
                 .Select(_employee => new EmployeeResponse
@@ -53,45 +60,68 @@ namespace BigioHrServices.Services
                     NIK = _employee.NIK,
                     Name = _employee.Name,
                     Sex = _employee.Sex,
-                    //JoinDate = _employee.JoinDate,
+                    JoinDate = _employee.JoinDate.ToString("yyy-MM-dd"),
                     WorkLength = _employee.WorkLength,
-                    Position = _employee.Position,
+                    PositionCode = _employee.PositionCode,
                     IsActive = _employee.IsActive,
                     DigitalSignature = _employee.DigitalSignature,
                 })
                 .ToList();
 
-            return new DatatableResponse()
+            var pagedData = new Pageable<EmployeeResponse>(data, request.Page - 1, request.PageSize);
+            foreach (var response in pagedData.Content.Where(p => p.PositionCode != null))
             {
-                Data = data.ToArray(),
-                TotalRecords = data.Count,
-                PageSize = request.PageSize > data.Count ? data.Count : request.PageSize,
-                NextPage = (request.PageSize * request.Page) < data.Count,
-                PrevPage = request.Page > 1,
-            };
+                response.Position = _db.Positions
+                    .Where(p => p.Code == response.PositionCode)
+                    .FirstOrDefault()?
+                    .Name;
+            }
+
+            return pagedData;
         }
 
-        public EmployeeResponse GetEmployeeByNIK(string nik)
+        public SingleReponse<EmployeeResponse> GetDetailEmployees(string nik)
         {
-            return _db.Employees
-                .Where(p => p.NIK.ToLower() == nik)
+            var employee = _db.Employees
+                .Where(p => p.NIK == nik)
                 .AsNoTracking()
+                .AsQueryable().ToList();
+
+            var data = employee
                 .Select(_employee => new EmployeeResponse
                 {
                     NIK = _employee.NIK,
                     Name = _employee.Name,
                     Sex = _employee.Sex,
-                    //JoinDate = _employee.JoinDate,
+                    JoinDate = _employee.JoinDate.ToString("yyy-MM-dd"),
                     WorkLength = _employee.WorkLength,
-                    Position = _employee.Position,
+                    PositionCode = _employee.PositionCode,
                     IsActive = _employee.IsActive,
                     DigitalSignature = _employee.DigitalSignature,
                 })
-                .FirstOrDefault();
-            /*if (data == null) throw new Exception("NIK tidak ada!");
-            return data;*/
+                .ToList();
+
+            var listData = new SingleReponse<EmployeeResponse>(data);
+            return listData;
         }
 
+        public Employee GetEmployeeByNIK(string nik)
+        {
+            return _db.Employees
+                .Where(p => p.NIK.ToLower() == nik)
+                .AsNoTracking()
+                .FirstOrDefault();
+        }
+
+
+        public Employee GetEmployeeById(long id)
+        {
+            return _db.Employees
+                .Find(id);
+        }
+
+
+       
         public void EmployeeAdd(EmployeeAddRequest request)
         {
             var data = _db.Employees
@@ -99,29 +129,34 @@ namespace BigioHrServices.Services
                 .AsNoTracking()
                 .FirstOrDefault();
             if (data != null) throw new Exception("NIK sudah ada!");
+            string hashPassword = Hasher.HashString2("Pegawai");
 
             try
             {
-                _db.Employees.Add(new Employee
+                var newEmployee = new Employee
                 {
                     NIK = request.NIK,
                     Name = request.Name,
                     Sex = request.Sex,
                     JoinDate = DateOnly.ParseExact(request.JoinDate, "yyyy-MM-dd"),
                     WorkLength = request.WorkLength,
-                    Position = request.Position,
-                    Password = "Pegawai",
-                    DigitalSignature = "101010"
-                });
+                    PositionCode = request.PositionID,
+                    Password = hashPassword,
+                    DigitalSignature = "101010",
+                    IsActive = true,
+                    Email = request.Email
+                };
+
+                _db.Employees.Add(newEmployee);
                 _db.SaveChanges();
             }
             catch (Exception ex)
             {
-                throw;
+                throw ex;
             }
         }
 
-        public void EmployeeUpdate(EmployeeAddRequest request)
+        public void EmployeeUpdate(EmployeeUpdateRequest request)
         {
             //if (data != null) throw new Exception("NIK sudah ada!");
             var data = _db.Employees.SingleOrDefault(p => p.NIK == request.NIK);
@@ -133,24 +168,43 @@ namespace BigioHrServices.Services
                     data.Sex = request.Sex;
                     data.JoinDate = DateOnly.ParseExact(request.JoinDate, "yyyy-MM-dd");
                     data.WorkLength = request.WorkLength;
-                    data.Position = request.Position;
-                    //_db.Employees.Add(new Employee
-                    //{
-                    //    NIK = request.NIK,
-                    //    Name = request.Name,
-                    //    Sex = request.Sex,
-                    //    JoinDate = DateOnly.ParseExact(request.JoinDate, "yyyy-MM-dd"),
-                    //    WorkLength = request.WorkLength,
-                    //    Position = request.Position,
-                    //    Password = "Pegawai",
-                    //    DigitalSignature = "101010"
-                    //});
+                    data.PositionCode = request.PositionId;
+                    data.UpdatedBy = null;
+                    data.UpdatedDate = DateTime.UtcNow;
+                    data.IsOnLeave = request.IsOnLeave;
+                    data.Email = request.Email;
                     _db.SaveChanges();
                 }
                 catch (Exception ex)
                 {
-                    throw;
+                    throw ex;
                 }
+            }
+            else
+            {
+                throw new Exception("NIK tidak ditemukan");
+            }
+
+        }
+
+        public void EmployeeDelete(string nik)
+        {
+            var data = _db.Employees.SingleOrDefault(p => p.NIK == nik);
+            if (data == null) throw new Exception("NIK Tidak Ditemukan!");
+            if (Convert.ToInt32(data.CreatedDate.ToString("yyyMMdd")) > Convert.ToInt32(DateTime.Now.ToString("yyyMMdd")) )
+            {
+                try
+                {
+                    data.IsActive = false;
+                    _db.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+            }else
+            {
+                throw new Exception("Pegawai Dalam Pelimpahan Wewenang");
             }
            
         }
