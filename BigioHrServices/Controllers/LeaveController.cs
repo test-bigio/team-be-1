@@ -19,10 +19,12 @@ namespace BigioHrServices.Controllers
     public class LeaveController : ControllerBase
     {
         private readonly ILeaveService _leaveService;
+        private readonly IAuditModuleServices _auditService;
 
-        public LeaveController(ILeaveService leaveService)
+        public LeaveController(ILeaveService leaveService, IAuditModuleServices auditService)
         {
             _leaveService = leaveService;
+            _auditService = auditService;
         }
 
         [HttpPost("requests")]
@@ -31,8 +33,9 @@ namespace BigioHrServices.Controllers
             try
             {
                 // todo validate pin token
-                _leaveService.AddNewLeaveRequest(request);
-                return new BaseResponse();
+                var leaveRequest = _leaveService.AddNewLeaveRequest(request);
+                _auditService.CreateLog("Cuti", "Create request cuti", $"Create new request cuti with id {leaveRequest.Id}");
+                return BaseResponse.Ok();
             }
             catch (Exception e)
             {
@@ -47,7 +50,8 @@ namespace BigioHrServices.Controllers
             {
                 // todo validate pin token
                 _leaveService.Approve(id);
-                return new BaseResponse();
+                _auditService.CreateLog("Cuti", "Approve request cuti", $"Approve request cuti with id {id}");
+                return BaseResponse.Ok();
             }
             catch (Exception e)
             {
@@ -62,7 +66,8 @@ namespace BigioHrServices.Controllers
             {
                 // todo validate pin token
                 _leaveService.Reject(id);
-                return new BaseResponse();
+                _auditService.CreateLog("Cuti", "Reject request cuti", $"Reject request cuti with id {id}");
+                return BaseResponse.Ok();
             }
             catch (Exception e)
             {

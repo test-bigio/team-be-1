@@ -13,5 +13,14 @@
                 Message = ex.Message
             };
         }
+
+        public static BaseResponse Ok()
+        {
+            return new BaseResponse
+            {
+                isSuccess = true,
+                Message = "OK"
+            };
+        }
     }
 }
