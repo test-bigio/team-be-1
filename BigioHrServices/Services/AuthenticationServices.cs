@@ -1,6 +1,7 @@
 ﻿using BigioHrServices.Db;
 using BigioHrServices.Db.Entities;
 using BigioHrServices.Model.Authentication;
+using BigioHrServices.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -30,11 +31,24 @@ namespace BigioHrServices.Services
         public LoginResponse Login(LoginRequest request)
         {
             var data = _db.Employees
-                .Where(p => p.NIK.ToLower().Equals(request.NIK) && p.Password.Equals(request.Password))
+                .Where(p => p.NIK.ToLower().Equals(request.NIK))
                 .AsNoTracking()
                 .FirstOrDefault();
-            
-            if (data == null) throw new Exception("NIK atau password tidak sesuai!");
+
+            // Check account is not registered
+            if (data == null) throw new Exception("Akun belum terdaftar!");
+
+            // Verify the password
+            var hasher = new Hasher();
+            if (!hasher.Equals(data.Password)) throw new Exception("NIK atau Password yang anda masukkan salah!");
+
+            // Check password expired 30 days
+            DateTime joinDate = new DateTime(data.JoinDate.Year, data.JoinDate.Month, data.JoinDate.Day);
+            var dateNow = DateTime.Now;
+            TimeSpan rangeDates = dateNow - joinDate;
+            int totalDays = (int)rangeDates.TotalDays + 1;
+
+            if (totalDays >= 30) throw new Exception("Password anda sudah kadaluarsa, mohon untuk reset password!");
 
             string token = "";
             try
