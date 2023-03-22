@@ -15,6 +15,7 @@ namespace BigioHrServices.Services
     {
         public DatatableResponse GetListPosition(PositionSearchRequest request);
         public PositionResponse GetPositionByCode(string code);
+        public Position GetDetailPosition(string code);
         public void AddPosition(PositionRequest request);
         public void EditPosition(PositionRequest request);
         public void InactivePosition(string code);
@@ -42,12 +43,12 @@ namespace BigioHrServices.Services
             }
 
             var data = query
-                .Select(_employee => new PositionResponse
+                .Select(_position => new PositionResponse
                 {
-                    Code = _employee.Code,
-                    Name = _employee.Name,
-                    Level = _employee.Level,
-                    IsActive = _employee.IsActive,
+                    Code = _position.Code,
+                    Name = _position.Name,
+                    Level = _position.Level,
+                    IsActive = _position.IsActive,
                 })
                 .ToList();
 
@@ -59,6 +60,11 @@ namespace BigioHrServices.Services
                 NextPage = (request.PageSize * request.Page) < data.Count,
                 PrevPage = request.Page > 1,
             };
+        }
+
+        public Position GetDetailPosition(string code)
+        {
+            return _db.Positions.Find(code);
         }
 
         public PositionResponse GetPositionByCode(string code)
@@ -74,7 +80,6 @@ namespace BigioHrServices.Services
                     IsActive = _position.IsActive,
                 })
                 .FirstOrDefault();
-
         }
 
         public void AddPosition(PositionRequest request)
@@ -83,6 +88,7 @@ namespace BigioHrServices.Services
                 .Where(p => p.Code.ToLower() == request.Code)
                 .AsNoTracking()
                 .FirstOrDefault();
+
             if (data != null) throw new Exception("Code is Exist!");
 
             try

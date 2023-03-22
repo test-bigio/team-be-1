@@ -1,14 +1,12 @@
 ﻿using BigioHrServices.Model;
 using BigioHrServices.Model.Datatable;
-using BigioHrServices.Model.Employee;
+using BigioHrServices.Db.Entities;
 using BigioHrServices.Model.Position;
 using BigioHrServices.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BigioHrServices.Controllers
 {
-    //[Route("api/[controller]")]
-    //[ApiController]
     public class PositionController
     {
         private readonly IPositionService _positionService;
@@ -28,6 +26,12 @@ namespace BigioHrServices.Controllers
             request.PageSize = request.PageSize <= 0 ? 10 : request.PageSize;
 
             return _positionService.GetListPosition(request);
+        }
+
+        [HttpGet("positions/{id}")]
+        public Position GetDetailPosition(string id)
+        {
+            return _positionService.GetDetailPosition(id);
         }
 
         [HttpPost("positions")]
