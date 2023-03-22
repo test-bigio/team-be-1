@@ -14,7 +14,7 @@ namespace BigioHrServices.Services
         LeaveQuotaResponse GetLeaveQuota(string id);
         DatatableResponse GetLeaveHistory(string id, LeaveHistoryRequest request);
         public DatatableResponse GetList(LeaveSearchRequest request);
-        void AddNewLeaveRequest(AddNewLeaveRequest request);
+        Leave AddNewLeaveRequest(AddNewLeaveRequest request);
     }
 
     public class LeaveService : ILeaveService
@@ -136,7 +136,7 @@ namespace BigioHrServices.Services
                 PrevPage = request.Page > 1,
             };
         }
-        public void AddNewLeaveRequest(AddNewLeaveRequest request)
+        public Leave AddNewLeaveRequest(AddNewLeaveRequest request)
         {
             // validasi matrix pelimpahan
             var delegationList = _db.Delegations
@@ -200,6 +200,7 @@ namespace BigioHrServices.Services
             {
                 Approve(leaveData.Id);
             }
+            return leaveData;
         }
         private int _getLeaveQuotaForHighestPosition(string requestEmployeeNik)
         {
