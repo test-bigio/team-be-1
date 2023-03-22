@@ -20,7 +20,7 @@ namespace BigioHrServices.Controllers
         }
 
         [HttpGet("GetList")]
-        public DatatableResponse GetEmployees([FromQuery] EmployeeSearchRequest request)
+        public Pageable<EmployeeResponse> GetEmployees([FromQuery] EmployeeSearchRequest request)
         {
             if (request == null) throw new Exception(RequestNull);
 
@@ -34,13 +34,14 @@ namespace BigioHrServices.Controllers
         //public SingleReponse GetDetail([FromBody] string nik)
         //{
         //    if (nik == null) throw new Exception(RequestNull);
-            
+
         //    return _employeeService.GetDetail(nik);
         //}
 
         [HttpPost("Add")]
         public BaseResponse AddEmployee([FromBody] EmployeeAddRequest request)
-        {Console.WriteLine("test");
+        {
+            Console.WriteLine("test");
             if (request == null) throw new Exception(RequestNull);
 
             var getExisting = _employeeService.GetEmployeeByNIK(request.NIK);
@@ -52,7 +53,7 @@ namespace BigioHrServices.Controllers
         }
 
         [HttpPut("Update")]
-        public BaseResponse UpdateEmployee([FromBody] EmployeeAddRequest request)
+        public BaseResponse UpdateEmployee([FromBody] EmployeeUpdateRequest request)
         {
             if (request == null) throw new Exception(RequestNull);
 

@@ -6,7 +6,7 @@ using BigioHrServices.Utilities;
 
 namespace BigioHrServices.Db.Entities
 {
-    public class Employee
+    public class Employee : BaseEntities
     {
         public Employee()
         {
@@ -29,8 +29,8 @@ namespace BigioHrServices.Db.Entities
         [Column("work_length")]
         public string WorkLength { get; set; } = string.Empty;
         [Required]
-        [Column("position")]
-        public string Position { get; set; } = string.Empty;
+        [Column("position_id")]
+        public long PositionID { get; set; }
         [Required]
         [Column("is_active")]
         public bool IsActive { get; set; }
@@ -40,5 +40,21 @@ namespace BigioHrServices.Db.Entities
         [Required]
         [Column("digital_signature")]
         public string DigitalSignature { get; set; }
+        [Column("jatah_cuti")]
+        public int JatahCuti { get; set; } = 12;
+        [Required]
+        [Column("last_update_password")]
+        public DateTime LastUpdatePassword { get; set; } = DateTime.UtcNow;
+        [Required]
+        [Column("is_on_leave")]
+        public bool IsOnLeave { get; set; } = false;
+        [Column("position_code")]
+        [ForeignKey("Positions")]
+        public string PositionCode { get; set; }
+        [Required]
+        [Column("email")]
+        public string Email { get; set; } = string.Empty;
+        [Column("otp")]
+        public string? OTP { get; set; }
     }
 }

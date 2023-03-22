@@ -33,7 +33,7 @@ namespace BigioHrServices.Services
                 .Where(p => p.NIK.ToLower().Equals(request.NIK) && p.Password.Equals(request.Password))
                 .AsNoTracking()
                 .FirstOrDefault();
-            
+
             if (data == null) throw new Exception("NIK atau password tidak sesuai!");
 
             string token = "";
@@ -63,7 +63,7 @@ namespace BigioHrServices.Services
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier,user.Name),
-                new Claim(ClaimTypes.Role,user.Position),
+                new Claim(ClaimTypes.Role,user.PositionCode),
                 new Claim("uid", user.NIK),
             };
 

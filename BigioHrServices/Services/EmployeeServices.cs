@@ -13,11 +13,11 @@ namespace BigioHrServices.Services
 {
     public interface IEmployeeService
     {
-        public DatatableResponse GetList(EmployeeSearchRequest request);
+        public Pageable<EmployeeResponse> GetList(EmployeeSearchRequest request);
         public EmployeeResponse GetEmployeeByNIK(string nik);
         public SingleReponse GetDetail(string nik);
         public void EmployeeAdd(EmployeeAddRequest request);
-        public void EmployeeUpdate(EmployeeAddRequest request);
+        public void EmployeeUpdate(EmployeeUpdateRequest request);
         public void EmployeeDelete(string nik);
     }
     public class EmployeeServices : IEmployeeService
@@ -28,11 +28,11 @@ namespace BigioHrServices.Services
             _db = db;
         }
 
-        public DatatableResponse GetList(EmployeeSearchRequest request)
+        public Pageable<EmployeeResponse> GetList(EmployeeSearchRequest request)
         {
 
             var query = _db.Employees
-                //.Where(p => p.IsActive == request.IsActive)
+                .Where(p => p.IsActive == request.IsActive)
                 .AsNoTracking()
                 .AsQueryable();
             if (!string.IsNullOrEmpty(request.Search))
@@ -55,22 +55,24 @@ namespace BigioHrServices.Services
                     NIK = _employee.NIK,
                     Name = _employee.Name,
                     Sex = _employee.Sex,
-                    //JoinDate = _employee.JoinDate,
+                    JoinDate = _employee.JoinDate.ToString("yyy-MM-dd"),
                     WorkLength = _employee.WorkLength,
-                    Position = _employee.Position,
+                    PositionCode = _employee.PositionCode,
                     IsActive = _employee.IsActive,
                     DigitalSignature = _employee.DigitalSignature,
                 })
                 .ToList();
 
-            return new DatatableResponse()
+            var pagedData = new Pageable<EmployeeResponse>(data, request.Page, request.PageSize);
+            foreach (var response in pagedData.Content.Where(p => p.PositionCode != null))
             {
-                Data = data.ToArray(),
-                TotalRecords = data.Count,
-                PageSize = request.PageSize > data.Count ? data.Count : request.PageSize,
-                NextPage = (request.PageSize * request.Page) < data.Count,
-                PrevPage = request.Page > 1,
-            };
+                response.Position = _db.Positions
+                    .Where(p => p.Code == response.PositionCode)
+                    .FirstOrDefault()?
+                    .Name;
+            }
+
+            return pagedData;
         }
 
         public EmployeeResponse GetEmployeeByNIK(string nik)
@@ -83,9 +85,9 @@ namespace BigioHrServices.Services
                     NIK = _employee.NIK,
                     Name = _employee.Name,
                     Sex = _employee.Sex,
-                    //JoinDate = _employee.JoinDate,
+                    JoinDate = _employee.JoinDate.ToString("yyy-MM-dd"),
                     WorkLength = _employee.WorkLength,
-                    Position = _employee.Position,
+                    PositionCode = _employee.PositionCode,
                     IsActive = _employee.IsActive,
                     DigitalSignature = _employee.DigitalSignature,
                 })
@@ -110,7 +112,7 @@ namespace BigioHrServices.Services
                     Sex = _employee.Sex,
                     //JoinDate = _employee.JoinDate,
                     WorkLength = _employee.WorkLength,
-                    Position = _employee.Position,
+                    PositionCode = _employee.PositionCode,
                     IsActive = _employee.IsActive,
                     DigitalSignature = _employee.DigitalSignature,
                 })
@@ -138,7 +140,7 @@ namespace BigioHrServices.Services
                     Sex = request.Sex,
                     JoinDate = DateOnly.ParseExact(request.JoinDate, "yyyy-MM-dd"),
                     WorkLength = request.WorkLength,
-                    Position = request.Position,
+                    PositionID = request.PositionID,
                     Password = "Pegawai",
                     DigitalSignature = "101010",
                     IsActive = true
@@ -147,11 +149,11 @@ namespace BigioHrServices.Services
             }
             catch (Exception ex)
             {
-                throw;
+                throw ex;
             }
         }
 
-        public void EmployeeUpdate(EmployeeAddRequest request)
+        public void EmployeeUpdate(EmployeeUpdateRequest request)
         {
             //if (data != null) throw new Exception("NIK sudah ada!");
             var data = _db.Employees.SingleOrDefault(p => p.NIK == request.NIK);
@@ -163,24 +165,21 @@ namespace BigioHrServices.Services
                     data.Sex = request.Sex;
                     data.JoinDate = DateOnly.ParseExact(request.JoinDate, "yyyy-MM-dd");
                     data.WorkLength = request.WorkLength;
-                    data.Position = request.Position;
-                    //_db.Employees.Add(new Employee
-                    //{
-                    //    NIK = request.NIK,
-                    //    Name = request.Name,
-                    //    Sex = request.Sex,
-                    //    JoinDate = DateOnly.ParseExact(request.JoinDate, "yyyy-MM-dd"),
-                    //    WorkLength = request.WorkLength,
-                    //    Position = request.Position,
-                    //    Password = "Pegawai",
-                    //    DigitalSignature = "101010"
-                    //});
+                    data.PositionID = request.PositionId;
+                    data.UpdatedBy = null;
+                    data.UpdatedDate = DateTime.UtcNow;
+                    data.IsOnLeave = request.IsOnLeave;
+                    data.Email = request.Email;
                     _db.SaveChanges();
                 }
                 catch (Exception ex)
                 {
-                    throw;
+                    throw ex;
                 }
+            }
+            else
+            {
+                throw new Exception("NIK tidak ditemukan");
             }
 
         }
@@ -197,7 +196,7 @@ namespace BigioHrServices.Services
             }
             catch (Exception ex)
             {
-                throw;
+                throw ex;
             }
         }
     }
