@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BigioHrServices.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230322055302_AddInitialTableNotification")]
+    [Migration("20230322080637_AddInitialTableNotification")]
     partial class AddInitialTableNotification
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -22,56 +22,7 @@ namespace BigioHrServices.Migrations
                 .HasAnnotation("ProductVersion", "6.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("BigioHrServices.Db.Entities.Employee", b =>
-                {
-                    b.Property<string>("NIK")
-                        .HasColumnType("text")
-                        .HasColumnName("nik");
-
-                    b.Property<string>("DigitalSignature")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("digital_signature");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_active");
-
-                    b.Property<DateOnly>("JoinDate")
-                        .HasColumnType("date")
-                        .HasColumnName("join_date");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("name");
-
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("password");
-
-                    b.Property<string>("Position")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("position");
-
-                    b.Property<string>("Sex")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("sex");
-
-                    b.Property<string>("WorkLength")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("work_length");
-
-                    b.HasKey("NIK");
-
-                    b.ToTable("Employees");
-                });
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);            
 
             modelBuilder.Entity("BigioHrServices.Db.Entities.Notification", b =>
                 {
@@ -99,6 +50,11 @@ namespace BigioHrServices.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("is_read");
 
+                    b.Property<string>("Nik")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("nik");
+
                     b.Property<DateTime?>("ReadDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("read_date");
@@ -111,7 +67,20 @@ namespace BigioHrServices.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Nik");
+
                     b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("BigioHrServices.Db.Entities.Notification", b =>
+                {
+                    b.HasOne("BigioHrServices.Db.Entities.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("Nik")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
                 });
 #pragma warning restore 612, 618
         }

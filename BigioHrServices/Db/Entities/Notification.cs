@@ -8,9 +8,9 @@ namespace BigioHrServices.Db.Entities
         [Column("id")]
         public string Id { get; set; }
 
-        /*[Column("user_id")]
-        [ForeignKey("User")]
-        public Guid UserId { get; set; }*/
+        [Column("nik")]
+        [ForeignKey("Employee")]
+        public string Nik { get; set; }
 
         [MaxLength(255)]
         [Required]
@@ -34,13 +34,6 @@ namespace BigioHrServices.Db.Entities
         [Column("created_date")]
         public DateTime? CreatedDate { get; set; }
 
-        //public virtual User User { get; set; }
-
-        /// <summary>
-        /// OBSOLETE, NO USE ANYMORE, DEFAULT VALUE
-        /// 
-        /// Real type of the notification, approve, reject, etc.
-        /// </summary>
-        //public NotificationConstantType ConstantType { get; set; }
+        public virtual Employee Employee { get; set; }
     }
 }

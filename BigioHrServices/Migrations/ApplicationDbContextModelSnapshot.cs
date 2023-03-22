@@ -22,6 +22,22 @@ namespace BigioHrServices.Db.Entities
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("BigioHrServices.Db.Entities.Delegation", b =>
+                {
+                    b.Property<string>("NIK")
+                        .HasColumnType("text")
+                        .HasColumnName("nik");
+
+                    b.Property<string>("ParentNIK")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("parent_nik");
+
+                    b.HasKey("NIK");
+
+                    b.ToTable("Delegations");
+                });
+
             modelBuilder.Entity("BigioHrServices.Db.Entities.Employee", b =>
                 {
                     b.Property<string>("NIK")
@@ -71,47 +87,6 @@ namespace BigioHrServices.Db.Entities
                     b.ToTable("Employees");
                 });
 
-            modelBuilder.Entity("BigioHrServices.Db.Entities.Notification", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("text")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Body")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("body");
-
-                    b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_date");
-
-                    b.Property<string>("Data")
-                        .IsRequired()
-                        .HasMaxLength(8000)
-                        .HasColumnType("character varying(8000)")
-                        .HasColumnName("data");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_read");
-
-                    b.Property<DateTime?>("ReadDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("read_date");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("title");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Notifications");
-                });
-
             modelBuilder.Entity("BigioHrServices.Db.Entities.Leave", b =>
                 {
                     b.Property<int>("Id")
@@ -149,25 +124,63 @@ namespace BigioHrServices.Db.Entities
                     b.ToTable("Leaves");
                 });
 
-            modelBuilder.Entity("BigioHrServices.Db.Entities.Delegation", b =>
+            modelBuilder.Entity("BigioHrServices.Db.Entities.Notification", b =>
                 {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                    b.Property<string>("Id")
+                        .HasColumnType("text")
+                        .HasColumnName("id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
-
-                    b.Property<string>("NIK")
+                    b.Property<string>("Body")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("body");
 
-                    b.Property<string>("ParentNIK")
+                    b.Property<DateTime?>("CreatedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date");
+
+                    b.Property<string>("Data")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)")
+                        .HasColumnName("data");
 
-                    b.HasKey("ID");
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_read");
 
-                    b.ToTable("Delegations");
+                    b.Property<string>("Nik")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("nik");
+
+                    b.Property<DateTime?>("ReadDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("read_date");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("title");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nik");
+
+                    b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("BigioHrServices.Db.Entities.Notification", b =>
+                {
+                    b.HasOne("BigioHrServices.Db.Entities.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("Nik")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
                 });
 #pragma warning restore 612, 618
         }
