@@ -3,17 +3,19 @@ using System;
 using BigioHrServices.Db;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace BigioHrServices.Db.Entities
+namespace BigioHrServices.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230322114149_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -99,6 +101,10 @@ namespace BigioHrServices.Db.Entities
                     b.Property<string>("PositionCode")
                         .IsRequired()
                         .HasColumnType("text")
+                        .HasColumnName("position_code");
+
+                    b.Property<long>("PositionID")
+                        .HasColumnType("bigint")
                         .HasColumnName("position_id");
 
                     b.Property<string>("Sex")
@@ -141,8 +147,6 @@ namespace BigioHrServices.Db.Entities
 
                     b.Property<DateTime>("LeaveStart")
                         .HasColumnType("timestamp without time zone");
-                    b.Property<DateOnly>("LeaveDate")
-                        .HasColumnType("date");
 
                     b.Property<string>("ReviewerNIK")
                         .IsRequired()
@@ -153,6 +157,9 @@ namespace BigioHrServices.Db.Entities
                         .HasColumnType("text");
 
                     b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TotalLeaveInDays")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -212,22 +219,6 @@ namespace BigioHrServices.Db.Entities
                         .HasMaxLength(8000)
                         .HasColumnType("character varying(8000)")
                         .HasColumnName("data");
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Body")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("body");
-
-                    b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("created_date");
 
                     b.Property<bool>("IsRead")
                         .HasColumnType("boolean")
@@ -244,24 +235,6 @@ namespace BigioHrServices.Db.Entities
                         .HasColumnName("title");
 
                     b.HasKey("Id");
-                    b.Property<string>("Nik")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("nik");
-
-                    b.Property<DateTime?>("ReadDate")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("read_date");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("title");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Nik");
 
                     b.ToTable("Notifications");
                 });
@@ -289,17 +262,6 @@ namespace BigioHrServices.Db.Entities
                     b.HasKey("Code");
 
                     b.ToTable("Positions");
-                });
-
-            modelBuilder.Entity("BigioHrServices.Db.Entities.Notification", b =>
-                {
-                    b.HasOne("BigioHrServices.Db.Entities.Employee", "Employee")
-                        .WithMany()
-                        .HasForeignKey("Nik")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Employee");
                 });
 #pragma warning restore 612, 618
         }

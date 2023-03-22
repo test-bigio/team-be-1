@@ -39,6 +39,7 @@ namespace BigioHrServices.Services
                 .AsNoTracking()
                 .FirstOrDefault();
 
+            if (data == null) throw new Exception("NIK atau password tidak sesuai!");
             // Check account is not registered
             if (data == null) throw new Exception("Akun belum terdaftar!");
 
@@ -60,7 +61,7 @@ namespace BigioHrServices.Services
             }
             catch (Exception ex)
             {
-                throw new Exception("Terjadi kesalahan");
+                throw ex;
             }
 
             LoginResponse response = new LoginResponse();
@@ -78,7 +79,7 @@ namespace BigioHrServices.Services
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier,user.Name),
-                new Claim(ClaimTypes.Role,user.Position),
+                new Claim(ClaimTypes.Role,user.PositionCode),
                 new Claim("uid", user.NIK),
             };
 
@@ -101,7 +102,7 @@ namespace BigioHrServices.Services
                         .Where(x => x.NIK.ToLower().Equals(request.NIK))
                         .AsNoTracking()
                         .FirstOrDefault();
-            
+
             // Check if data employee not found
             if (data == null) throw new Exception("Akun tidak ditemukan!");
 
@@ -109,14 +110,14 @@ namespace BigioHrServices.Services
             if (!_hasher.verifiyPassword(request.CurrentPassword, data.Password)) throw new Exception("Password sekarang tidak sama!");
 
             // Check if new password is same with current password
-            if (_hasher.verifiyPassword(request.NewPassword, data.Password))  throw new Exception("Password baru tidak boleh sama dengan password sekarang!");
+            if (_hasher.verifiyPassword(request.NewPassword, data.Password)) throw new Exception("Password baru tidak boleh sama dengan password sekarang!");
 
             // If validation success save new password into database
-            try 
+            try
             {
                 data.Password = _hasher.HashString(request.NewPassword);
                 data.LastUpdatePassword = DateTime.Now;
-                
+
                 _db.Employees.Update(data);
                 _db.SaveChanges();
             }

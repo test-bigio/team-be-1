@@ -2,7 +2,7 @@
 
 public class Pageable<T>
 {
-    public List<T> Content { get; }
+    public List<T> Content { get; set; }
     public int TotalContent { get; }
     public int PageNumber { get; }
     public int PageSize { get; }
