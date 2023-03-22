@@ -35,7 +35,6 @@ namespace BigioHrServices.Services
 
         public void Approve(int id)
         {
-            // todo logic melimpahkan
             var leave = _getLeaveDataOrFail(id);
 
             if (leave.IsAlreadyReviewed())
