@@ -14,10 +14,9 @@ namespace BigioHrServices.Controllers
         public EmployeeController(IEmployeeService employeeService)
         {
             _employeeService = employeeService;
-            //_logactivityService = logactivityService;
         }
 
-        [HttpGet("v1/Users")]
+        [HttpGet("v1/user")]
         public Pageable<EmployeeResponse> GetEmployees([FromQuery] EmployeeSearchRequest request)
         {
             if (request == null) throw new Exception(RequestNull);
@@ -37,7 +36,7 @@ namespace BigioHrServices.Controllers
         }
 
 
-        [HttpPost("Add")]
+        [HttpPost("v1/users")]
         public BaseResponse AddEmployee([FromBody] EmployeeAddRequest request)
         {
             Console.WriteLine("test");
@@ -51,7 +50,7 @@ namespace BigioHrServices.Controllers
             return new BaseResponse();
         }
 
-        [HttpPut("Update")]
+        [HttpPut("v1/users")]
         public BaseResponse UpdateEmployee([FromBody] EmployeeUpdateRequest request)
         {
             if (request == null) throw new Exception(RequestNull);
@@ -61,12 +60,34 @@ namespace BigioHrServices.Controllers
             return new BaseResponse();
         }
 
-        [HttpPut("Delete")]
-        public BaseResponse Delete([FromForm] string nik)
+        [HttpPut("v1/users/non-active/{nik}")]
+        public BaseResponse Delete(string nik)
         {
-            if (nik == null) throw new Exception(RequestNull);
+            var response = new BaseResponse();
+            var data = _employeeService.GetEmployeeByNIK(nik);
+            if (nik == null)
+            {
+                response.isSuccess = false;
+                response.Message = RequestNull;
+                return response;
+            }
+            else if (data == null)
+            {
+                response.isSuccess = false;
+                response.Message = "NIK Tidak Ditemukan";
+                return response;
+            }
+            else if (data.IsActive == false)
+            {
+                response.isSuccess = false;
+                response.Message = "NIK Telah Non Active";
+                return response;
+            }
+
             _employeeService.EmployeeDelete(nik);
-            return new BaseResponse();
+            response.isSuccess = true;
+            response.Message = "Berhasil Mengnon-active pegawai dengan nik " + nik;
+            return response;
         }
     }
 }

@@ -172,8 +172,8 @@ namespace BigioHrServices.Services
         public void EmployeeDelete(string nik)
         {
             var data = _db.Employees.SingleOrDefault(p => p.NIK == nik);
-            // var leave = _db.Leaves.SingleOrDefault(p => p.DelegatedStafNIK == data.NIK);
-            if (data == null) throw new Exception("NIK Tidak Ditemukan!");
+            // if (data == null) throw new Exception("NIK Tidak Ditemukan!");
+            // if (data.IsActive == false) throw new Exception("NIK Tersebut Sudah Non Active");
             // if (Convert.ToInt32(leave.LeaveDate.ToString("yyyMMdd")) > Convert.ToInt32(DateTime.Now.ToString("yyyMMdd")))
             // {
             try
