@@ -8,16 +8,17 @@ using System;
 using System.Globalization;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 
 namespace BigioHrServices.Services
 {
     public interface IPositionService
     {
         public DatatableResponse GetListPosition(PositionSearchRequest request);
-        public PositionResponse GetPositionByCode(string code);
+        public Position GetPositionByCode(string code);
         public Position GetDetailPosition(string code);
-        public void AddPosition(PositionRequest request);
-        public void EditPosition(PositionRequest request);
+        public void AddPosition(PositionAddRequest request);
+        public void EditPosition(PositionEditRequest request);
         public void InactivePosition(string code);
 
     }
@@ -67,34 +68,37 @@ namespace BigioHrServices.Services
             return _db.Positions.Find(code);
         }
 
-        public PositionResponse GetPositionByCode(string code)
+        public Position GetPositionByCode(string code)
         {
             return _db.Positions
-                .Where(p => p.Code.ToLower() == code)
+                .Where(p => p.Code.ToLower() == code.ToLower())
                 .AsNoTracking()
-                .Select(_position => new PositionResponse
-                {
-                    Code = _position.Code,
-                    Name = _position.Name,
-                    Level = _position.Level,
-                    IsActive = _position.IsActive,
-                })
                 .FirstOrDefault();
         }
 
-        public void AddPosition(PositionRequest request)
+        public void AddPosition(PositionAddRequest request)
         {
-            var data = _db.Positions
-                .Where(p => p.Code.ToLower() == request.Code)
-                .AsNoTracking()
-                .FirstOrDefault();
+            var chars = "0123456789";
+            var array = new char[4];
+            var random = new Random();
 
-            if (data != null) throw new Exception("Code is Exist!");
+            for (int i = 0; i < array.Length; i++)
+            {
+                array[i] = chars[random.Next(chars.Length)];
+            }
+
+            var transaksiId = new String(array);
+
+            string prefix = "Pos";
+            string fourDigit = transaksiId.ToString().PadLeft(4, '0');
+            string uniqueCode = prefix + fourDigit;
+
             try
             {
                 _db.Positions.Add(new Position
                 {
-                    Code = request.Code,
+
+                    Code = uniqueCode,
                     Name = request.Name,
                     Level = request.Level,
                     IsActive = true
@@ -107,7 +111,7 @@ namespace BigioHrServices.Services
             }
         }
 
-        public void EditPosition(PositionRequest request)
+        public void EditPosition(PositionEditRequest request)
         {
             var data = _db.Positions.SingleOrDefault(p => p.Code == request.Code);
             if (data != null)
