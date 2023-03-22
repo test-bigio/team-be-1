@@ -225,6 +225,31 @@ namespace BigioHrServices.Db.Entities
 
                     b.ToTable("Delegations");
                 });
+
+            modelBuilder.Entity("BigioHrServices.Db.Entities.Position", b =>
+            {
+                b.Property<string>("Code")
+                    .HasColumnType("text")
+                    .HasColumnName("code");
+
+                b.Property<bool>("IsActive")
+                    .HasColumnType("boolean")
+                    .HasColumnName("is_active");
+
+                b.Property<string>("Level")
+                    .IsRequired()
+                    .HasColumnType("text")
+                    .HasColumnName("level");
+
+                b.Property<string>("Name")
+                    .IsRequired()
+                    .HasColumnType("text")
+                    .HasColumnName("name");
+
+                b.HasKey("Code");
+
+                b.ToTable("Positions");
+            });
 #pragma warning restore 612, 618
         }
     }
