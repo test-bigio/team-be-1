@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using BigioHrServices.Db;
 using BigioHrServices.Db.Entities;
 using BigioHrServices.Model.Datatable;
 using BigioHrServices.Model.Leave;
+using Microsoft.EntityFrameworkCore;
 
 namespace BigioHrServices.Services
 {
@@ -12,6 +13,8 @@ namespace BigioHrServices.Services
         void Reject(int id);
         LeaveQuotaResponse GetLeaveQuota(string id);
         DatatableResponse GetLeaveHistory(string id, LeaveHistoryRequest request);
+        void AddNewLeaveRequest(AddNewLeaveRequest request, string currentUserNik);
+        public DatatableResponse GetList(LeaveSearchRequest request);
         void AddNewLeaveRequest(AddNewLeaveRequest request);
     }
 
@@ -37,6 +40,17 @@ namespace BigioHrServices.Services
             
             leave.Status = Leave.RequestStatus.Approved;
             _db.SaveChanges();
+
+            // add to notification
+            var notification = new Notification
+            {
+                Nik = leave.StafNIK,
+                Title = "Status Pengajuan Cuti",
+                Body = "Disetujui",
+                CreatedDate = DateTime.UtcNow,
+            };
+            _db.Notifications.Add(notification);
+            _db.SaveChanges();
         }
 
         public void Reject(int id)
@@ -48,6 +62,17 @@ namespace BigioHrServices.Services
                 throw new Exception("Request already reviewed");
             }
             leave.Status = Leave.RequestStatus.Rejected;
+            _db.SaveChanges();
+
+            // add to notification
+            var notification = new Notification
+            {
+                Nik = leave.StafNIK,
+                Title = "Status Pengajuan Cuti",
+                Body = "Ditolak",
+                CreatedDate = DateTime.UtcNow,
+            };
+            _db.Notifications.Add(notification);
             _db.SaveChanges();
         }
 
@@ -145,6 +170,18 @@ namespace BigioHrServices.Services
             };
             _db.Leaves.Add(leaveData);
             _db.SaveChanges();
+
+            // add to notification
+            var notification = new Notification
+            {
+                Nik = leaveData.StafNIK,
+                Title = "Pengajuan Cuti Baru",
+                Body = "Pengajuan cuti dari pegawai dengan nik "+ leaveData.StafNIK + "silahkan di review",
+                CreatedDate = DateTime.UtcNow,
+            };
+            _db.Notifications.Add(notification);
+            _db.SaveChanges();
+
             if (currentUserHaveHighestPosition)
             {
                 // todo: still not test this implementation
@@ -165,6 +202,72 @@ namespace BigioHrServices.Services
                 throw new Exception("Data not found");
             }
             return leave;
+        }
+
+        public DatatableResponse GetList(LeaveSearchRequest request)
+        {
+
+            var query = _db.Leaves
+                .AsNoTracking()
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(request.Search))
+            {
+                query = query.Where(leave => leave.StafNIK.ToLower() == request.Search.ToLower() || leave.ReviewerNIK.ToLower() == request.Search.ToLower() || leave.DelegatedStafNIK.ToLower() == request.Search.ToLower());
+            }
+
+            if (!string.IsNullOrEmpty(request.stafNIK))
+            {
+                query = query.Where(leave => leave.StafNIK.ToLower() == request.stafNIK.ToLower());
+            }
+
+            if (!string.IsNullOrEmpty(request.reviewerNIK))
+            {
+                query = query.Where(leave => leave.ReviewerNIK.ToLower() == request.reviewerNIK.ToLower());
+            }
+
+            switch (request.SortBy.ToString().ToLower())
+            {
+                case "createdat":
+                    query = query.OrderBy(leave => leave.CreatedAt);
+                    break;
+                case "createdat_desc":
+                    query = query.OrderByDescending(leave => leave.CreatedAt);
+                    break;
+                case "leavestart":
+                    query = query.OrderBy(leave => leave.LeaveStart);
+                    break;
+                case "leavestart_desc":
+                    query = query.OrderByDescending(leave => leave.LeaveStart);
+                    break;
+                default:
+                    query = query.OrderBy(leave => leave.Id);
+                    break;
+            }
+
+            var data = query
+                .Select(_leave => new LeaveResponse
+                {
+                    Id = _leave.Id,
+                    StafNIK = _leave.StafNIK,
+                    DelegatedStafNIK = _leave.DelegatedStafNIK,
+                    ReviewerNIK = _leave.ReviewerNIK,
+                    Status = _leave.Status.ToString(),
+                    LeaveStart = _leave.LeaveStart,
+                    CreatedAt = _leave.CreatedAt,
+                    UpdatedAt = _leave.UpdatedAt,
+                    TotalLeaveInDays = _leave.TotalLeaveInDays
+                })
+                .ToList();
+
+            return new DatatableResponse()
+            {
+                Data = data.ToArray(),
+                TotalRecords = data.Count,
+                PageSize = request.PageSize > data.Count ? data.Count : request.PageSize,
+                NextPage = (request.PageSize * request.Page) < data.Count,
+                PrevPage = request.Page > 1,
+            };
         }
     }
 }
