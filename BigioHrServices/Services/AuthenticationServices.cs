@@ -115,6 +115,8 @@ namespace BigioHrServices.Services
             try 
             {
                 data.Password = _hasher.HashString(request.NewPassword);
+                data.LastUpdatePassword = DateTime.Now;
+                
                 _db.Employees.Update(data);
                 _db.SaveChanges();
             }
