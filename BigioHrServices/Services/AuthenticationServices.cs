@@ -40,12 +40,13 @@ namespace BigioHrServices.Services
 
             // Verify the password
             var hasher = new Hasher();
-            if (!hasher.Equals(data.Password)) throw new Exception("NIK atau Password yang anda masukkan salah!");
+            var verifiyPasswordUser = hasher.HashString(request.Password);
+            if (!verifiyPasswordUser.Equals(data.Password)) throw new Exception("NIK atau Password yang anda masukkan salah!");
 
             // Check password expired 30 days
-            DateTime joinDate = new DateTime(data.JoinDate.Year, data.JoinDate.Month, data.JoinDate.Day);
+            var lastUpdatePassword = data.LastUpdatePassword;
             var dateNow = DateTime.Now;
-            TimeSpan rangeDates = dateNow - joinDate;
+            TimeSpan rangeDates = dateNow - lastUpdatePassword;
             int totalDays = (int)rangeDates.TotalDays + 1;
 
             if (totalDays >= 30) throw new Exception("Password anda sudah kadaluarsa, mohon untuk reset password!");
@@ -66,9 +67,7 @@ namespace BigioHrServices.Services
             return response;
         }
 
-
-
-        // To generate token
+        // To generate token login
         private string GenerateToken(Employee user)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
@@ -77,7 +76,8 @@ namespace BigioHrServices.Services
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier,user.Name),
-                new Claim(ClaimTypes.Role,user.Position)
+                new Claim(ClaimTypes.Role,user.Position),
+                new Claim("uid", user.NIK)
             };
 
             var token = new JwtSecurityToken(
@@ -88,11 +88,7 @@ namespace BigioHrServices.Services
                 signingCredentials: credentials
             );
 
-
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
-
-
     }
 }
