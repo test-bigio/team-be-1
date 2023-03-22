@@ -10,7 +10,7 @@ namespace BigioHrServices.Services
         string Role { get; }
     }
 
-    public class AuthUserService
+    public class AuthUserService : IAuthUserService
     {
         private IHttpContextAccessor _httpContextAccessor;
 

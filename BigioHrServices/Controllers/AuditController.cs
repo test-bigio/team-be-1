@@ -7,7 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BigioHrServices.Controllers
 {
-    public class AuditController
+    [Route("leave")]
+    [ApiController]
+    public class AuditController : ControllerBase
     {
         private readonly IAuditModuleServices _auditModuleServices;
         private readonly string RequestNull = "Request cannot be null!";
@@ -18,7 +20,7 @@ namespace BigioHrServices.Controllers
         }
 
         [HttpGet("GetList")]
-        public async Task<DatatableResponse> GetEmployees([FromQuery] AuditModuleDatatableRequest request)
+        public async Task<DatatableResponse> GetAudit([FromQuery] AuditModuleDatatableRequest request)
         {
             if(request == null) throw new Exception(RequestNull);
 
