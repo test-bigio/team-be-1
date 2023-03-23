@@ -29,6 +29,24 @@ namespace BigioHrServices.Controllers
             return _delegationService.GetList(request);
         }
 
+        [HttpGet("{nik}")]
+        public DelegationDetailResponse GetDetailDelegations(string nik)
+        {
+            if (nik == "") throw new Exception(RequestNull);
+
+            return _delegationService.GetDetailDelegation(nik);
+        }
+
+        [HttpPut("{id}")]
+        public BaseResponse UpdateDelegation(int id, [FromBody] DelegationUpdateRequest request)
+        {
+            if (request == null) throw new Exception(RequestNull);
+
+            _delegationService.DelegationUpdate(id, request);
+
+            return new BaseResponse();
+        }
+
         [HttpPost()]
         public BaseResponse AddDelegation([FromBody] DelegationAddRequest request)
         {

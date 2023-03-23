@@ -4,17 +4,20 @@ using BigioHrServices.Db.Entities;
 using BigioHrServices.Model.Position;
 using BigioHrServices.Services;
 using Microsoft.AspNetCore.Mvc;
+using MessagePack;
 
 namespace BigioHrServices.Controllers
 {
     public class PositionController
     {
         private readonly IPositionService _positionService;
+        private readonly IAuditModuleServices _auditLogService;
         private readonly string RequestNull = "Request cannot be null!";
 
-        public PositionController(IPositionService positionService)
+        public PositionController(IPositionService positionService, IAuditModuleServices auditService)
         {
             _positionService = positionService;
+            _auditLogService = auditService;
         }
 
         [HttpGet("positions")]
@@ -28,86 +31,142 @@ namespace BigioHrServices.Controllers
             return _positionService.GetListPosition(request);
         }
 
-        [HttpGet("positions/{id}")]
-        public Position GetDetailPosition(string id)
+        [HttpGet("positions/{code}")]
+        public Position GetDetailPosition(string code)
         {
-            return _positionService.GetDetailPosition(id);
+            return _positionService.GetDetailPosition(code);
         }
 
         [HttpPost("positions")]
-        public BaseResponse AddPosition([FromBody] PositionRequest request)
+        public BaseResponse AddPosition([FromBody] PositionAddRequest request)
         {
-            BaseResponse response = new BaseResponse();
-            var getCodeExist = _positionService.GetPositionByCode(request.Code);
+            var response = new BaseResponse();
 
             if (request == null)
             {
                 response.isSuccess = false;
-                response.Message = "Request cannot be null!";
-            }
-            else if (getCodeExist == null)
-            {
-                response.isSuccess = false;
-                response.Message = "Code already exist!";
-            }
-            else
-            {
-                _positionService.AddPosition(request);
+                response.Message = RequestNull;
 
-                response.isSuccess = true;
-                response.Message = "New Position Added!";
+                _auditLogService.CreateLog(
+                   "Jabatan",
+                   "Tambah",
+                   "Gagal Menambahkan Jabatan Karena Request Tidak Ada"
+                );
+
+                return response;
             }
 
-            return new BaseResponse();
+            _positionService.AddPosition(request);
+            response.isSuccess = true;
+            response.Message = "Berhasil Menambahkan jabatan";
+
+            return response;  
         }
 
         [HttpPut("positions")]
-        public BaseResponse UpdatePosition([FromBody] PositionRequest request)
+        public BaseResponse UpdatePosition([FromBody] PositionEditRequest request)
         {
-            BaseResponse response = new BaseResponse();
-            var getCodeExist = _positionService.GetPositionByCode(request.Code);
+            var response = new BaseResponse();
+            var data = _positionService.GetPositionByCode(request.Code);
 
             if (request == null)
             {
                 response.isSuccess = false;
-                response.Message = "Request cannot be null!";
+                response.Message = RequestNull;
+
+                _auditLogService.CreateLog(
+                   "Jabatan",
+                   "Edit",
+                   "Gagal Mengedit Jabatan Karena Request Tidak Ada"
+                );
+
+                return response;
             }
-            else if (getCodeExist != null)
+            else if (data == null)
             {
                 response.isSuccess = false;
-                response.Message = "Code is not exist!";
+                response.Message = "Code Tidak Ditemukan";
+
+                _auditLogService.CreateLog(
+                   "Jabatan",
+                   "Edit",
+                   "Gagal Mengedit Jabatan Karena Code Tidak Ditemukan"
+                );
+
+                return response;
             }
-            else
+            else if (data.IsActive == false)
             {
-                _positionService.EditPosition(request);
+                response.isSuccess = false;
+                response.Message = "Code Saat ini Non Active";
 
-                response.isSuccess = true;
-                response.Message = "Position is Updated!";
+                _auditLogService.CreateLog(
+                   "Jabatan",
+                   "Edit",
+                   "Gagal Mengedit Jabatan Karena Code Saat ini Non Active"
+                );
+
+                return response;
             }
 
-            return new BaseResponse();
+            _positionService.EditPosition(request);
+            response.isSuccess = true;
+            response.Message = "Berhasil Mengupdate jabatan dengan code " + request.Code;
+
+            return response;
         }
 
-        [HttpDelete("positions/{id}")]
-        public BaseResponse DeletePosition(string id)
+        [HttpDelete("positions/non-active/{code}")]
+        public BaseResponse DeletePosition(string code)
         {
-            BaseResponse response = new BaseResponse();
-            var getCodeExist = _positionService.GetPositionByCode(id);
-            
-            if (getCodeExist != null)
+            var response = new BaseResponse();
+            var data = _positionService.GetPositionByCode(code);
+
+            if (code == null)
             {
                 response.isSuccess = false;
-                response.Message = "Code is not exist!";
+                response.Message = RequestNull;
+
+                _auditLogService.CreateLog(
+                   "Jabatan",
+                   "Nonactive",
+                   "Gagal Nonactive Jabatan Karena Request Tidak Ada"
+                );
+
+                return response;
             }
-            else
+            else if (data == null)
             {
-                _positionService.InactivePosition(id);
+                response.isSuccess = false;
+                response.Message = "Code Tidak Ditemukan";
 
-                response.isSuccess = true;
-                response.Message = "Position is Inactive!";
+                _auditLogService.CreateLog(
+                   "Jabatan",
+                   "Nonactive",
+                   "Gagal Nonactive Jabatan Karena Code Tidak Ditemukan"
+                );
+
+                return response;
+            }
+            else if (data.IsActive == false)
+            {
+                response.isSuccess = false;
+                response.Message = "Code Telah Non Active";
+
+                _auditLogService.CreateLog(
+                   "Jabatan",
+                   "Nonactive",
+                   "Gagal Nonactive Jabatan Karena Code Telah Non Active"
+                );
+
+                return response;
             }
 
-            return new BaseResponse();
+            _positionService.InactivePosition(code);
+            response.isSuccess = true;
+            response.Message = "Berhasil Mengnon-active jabatan dengan code " + code;
+
+            return response;
         }
     }
 }
