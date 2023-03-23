@@ -3,6 +3,7 @@ using System;
 using BigioHrServices.Db;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BigioHrServices.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230322180137_UpdateTableDigitalPinLogs")]
+    partial class UpdateTableDigitalPinLogs
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -58,14 +60,7 @@ namespace BigioHrServices.Migrations
 
             modelBuilder.Entity("BigioHrServices.Db.Entities.Delegation", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
                     b.Property<string>("NIK")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("nik");
 
@@ -74,11 +69,7 @@ namespace BigioHrServices.Migrations
                         .HasColumnType("text")
                         .HasColumnName("parent_nik");
 
-                    b.Property<int>("Priority")
-                        .HasColumnType("integer")
-                        .HasColumnName("priority");
-
-                    b.HasKey("Id");
+                    b.HasKey("NIK");
 
                     b.ToTable("Delegations");
                 });

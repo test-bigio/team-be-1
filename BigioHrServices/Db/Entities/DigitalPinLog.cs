@@ -9,7 +9,8 @@ namespace BigioHrServices.Db.Entities
     {
         [Key]
         [Column("id")]
-        public string Id { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
         [Required]
         [Column("staff_id")]
         public string StaffId { get; set; }

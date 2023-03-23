@@ -25,26 +25,14 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
+    c.OperationFilter<AddAuthorizationHeaderOperationFilter>();
+
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
         Description = "Please insert JWT with Bearer into field",
         Name = "Authorization",
         Type = SecuritySchemeType.ApiKey
-    });
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new string[]{}
-        }
     });
 });
 
@@ -94,6 +82,7 @@ builder.Services.AddScoped<IAuthUserService, AuthUserService>();
 builder.Services.AddScoped(typeof(IEmployeeService), typeof(EmployeeServices));
 builder.Services.AddScoped(typeof(IAuthenticationService), typeof(AuthenticationServices));
 builder.Services.AddScoped(typeof(Hasher));
+builder.Services.AddScoped(typeof(IDelegationService), typeof(DelegationServices));
 builder.Services.AddScoped(typeof(ILeaveService), typeof(LeaveService));
 builder.Services.AddScoped(typeof(IPositionService), typeof(PositionServices));
 builder.Services.AddScoped(typeof(INotificationService), typeof(NotificationServices));
