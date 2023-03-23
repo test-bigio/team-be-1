@@ -160,7 +160,6 @@ namespace BigioHrServices.Services
 
         public void EmployeeUpdate(EmployeeUpdateRequest request)
         {
-            //if (data != null) throw new Exception("NIK sudah ada!");
             var data = _db.Employees.SingleOrDefault(p => p.NIK == request.NIK);
             if (data != null)
             {
@@ -191,8 +190,6 @@ namespace BigioHrServices.Services
                           "Gagal Update"
                       );
                     throw ex;
-
-
                 }
             }
             else
