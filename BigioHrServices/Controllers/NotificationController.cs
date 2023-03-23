@@ -3,12 +3,14 @@ using BigioHrServices.Model.Datatable;
 using BigioHrServices.Model.Employee;
 using BigioHrServices.Model.Notification;
 using BigioHrServices.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BigioHrServices.Controllers
 {
     [Route("notifications")]
     [ApiController]
+    [Authorize]
     public class NotificationController
     {
         private readonly INotificationService _notificationService;
@@ -20,7 +22,7 @@ namespace BigioHrServices.Controllers
         }
 
         [HttpGet]
-        public DatatableResponse GetListNotification([FromQuery] NotificationGetRequest request)
+        public Pageable<NotificationResponse> GetListNotification([FromQuery] NotificationGetRequest request)
         {
             if(request == null) throw new Exception(RequestNull);
 
@@ -31,7 +33,7 @@ namespace BigioHrServices.Controllers
         }
 
         [HttpGet("me")]
-        public DatatableResponse GetNotificationsByEmployeeId([FromQuery] NotificationGetRequest request, string nik)
+        public Pageable<NotificationResponse> GetNotificationsByEmployeeId([FromQuery] NotificationGetRequest request, string nik)
         {
             if (request == null) throw new Exception(RequestNull);
 
@@ -49,7 +51,7 @@ namespace BigioHrServices.Controllers
             return _notificationService.GetDetailNotification(id);
         }
 
-        /*[HttpPut("update-status-notification/{id}")]
+        [HttpPut("update-status/{id}")]
         public BaseResponse UpdateStatusNotification(int id)
         {
             if (id == null) throw new Exception(RequestNull);
