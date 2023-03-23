@@ -43,16 +43,14 @@ namespace BigioHrServices.Services
             }
             if (!string.IsNullOrEmpty(request.StartDate))
             {
-                DateTime startDate = DateTime.ParseExact(request.StartDate, "yyyy-MM-dd HH:mm:sszzz", CultureInfo.InvariantCulture);
-                NpgsqlTypes.NpgsqlDateTime startDateTimestampz = new NpgsqlTypes.NpgsqlDateTime(startDate);
-                query = query.Where(p => NpgsqlTypes.NpgsqlDateTime.ToNpgsqlDateTime(p.CreatedDate.Value) > startDateTimestampz);
+                DateTime startDate = DateTime.ParseExact(request.StartDate, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                query = query.Where(p => p.CreatedDate > startDate);
             }
 
             if (!string.IsNullOrEmpty(request.EndDate))
             {
-                DateTime endDate = DateTime.ParseExact(request.EndDate, "yyyy-MM-dd HH:mm:sszzz", CultureInfo.InvariantCulture);
-                NpgsqlTypes.NpgsqlDateTime endDateTimestampz = new NpgsqlTypes.NpgsqlDateTime(endDate);
-                query = query.Where(p => NpgsqlTypes.NpgsqlDateTime.ToNpgsqlDateTime(p.CreatedDate.Value) < endDateTimestampz);
+                DateTime endDate = DateTime.ParseExact(request.EndDate, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                query = query.Where(p => p.CreatedDate < endDate);
             }
 
             var data = query

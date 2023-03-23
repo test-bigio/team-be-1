@@ -3,12 +3,14 @@ using BigioHrServices.Model.Datatable;
 using BigioHrServices.Model.Employee;
 using BigioHrServices.Model.Notification;
 using BigioHrServices.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BigioHrServices.Controllers
 {
     [Route("notifications")]
     [ApiController]
+    [Authorize]
     public class NotificationController
     {
         private readonly INotificationService _notificationService;
