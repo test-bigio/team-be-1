@@ -25,9 +25,12 @@ namespace BigioHrServices.Services
     public class PositionServices : IPositionService
     {
         private readonly ApplicationDbContext _db;
-        public PositionServices(ApplicationDbContext db)
+        private readonly IAuditModuleServices _auditLogService;
+
+        public PositionServices(ApplicationDbContext db, IAuditModuleServices auditLogService)
         {
             _db = db;
+            _auditLogService = auditLogService;
         }
 
         public DatatableResponse GetListPosition(PositionSearchRequest request)
@@ -53,6 +56,12 @@ namespace BigioHrServices.Services
                 })
                 .ToList();
 
+            _auditLogService.CreateLog(
+               "Jabatan",
+               "List",
+               "Menampilkan Get List Jabatan"
+           );
+
             return new DatatableResponse()
             {
                 Data = data.ToArray(),
@@ -65,6 +74,12 @@ namespace BigioHrServices.Services
 
         public Position GetDetailPosition(string code)
         {
+            _auditLogService.CreateLog(
+               "Jabatan",
+               "Detail",
+               "Menampilkan Get Detail Jabatan"
+            );
+
             return _db.Positions.Find(code);
         }
 
@@ -104,6 +119,12 @@ namespace BigioHrServices.Services
                     IsActive = true
                 });
                 _db.SaveChanges();
+
+                _auditLogService.CreateLog(
+                   "Jabatan",
+                   "Tambah",
+                   "Berhasil Menambahkan Jabatan"
+                );
             }
             catch (Exception ex)
             {
@@ -122,6 +143,12 @@ namespace BigioHrServices.Services
                     data.Level = request.Level;
 
                     _db.SaveChanges();
+
+                    _auditLogService.CreateLog(
+                       "Jabatan",
+                       "Edit",
+                       "Berhasil Mengedit Jabatan"
+                    );
                 }
                 catch (Exception ex)
                 {
@@ -145,6 +172,12 @@ namespace BigioHrServices.Services
                     data.IsActive = false;
 
                     _db.SaveChanges();
+
+                    _auditLogService.CreateLog(
+                       "Jabatan",
+                       "Nonactive",
+                       "Berhasil Men-nonactive Jabatan"
+                    );
                 }
                 catch (Exception ex)
                 {

@@ -11,11 +11,13 @@ namespace BigioHrServices.Controllers
     public class PositionController
     {
         private readonly IPositionService _positionService;
+        private readonly IAuditModuleServices _auditLogService;
         private readonly string RequestNull = "Request cannot be null!";
 
-        public PositionController(IPositionService positionService)
+        public PositionController(IPositionService positionService, IAuditModuleServices auditService)
         {
             _positionService = positionService;
+            _auditLogService = auditService;
         }
 
         [HttpGet("positions")]
@@ -44,6 +46,13 @@ namespace BigioHrServices.Controllers
             {
                 response.isSuccess = false;
                 response.Message = RequestNull;
+
+                _auditLogService.CreateLog(
+                   "Jabatan",
+                   "Tambah",
+                   "Gagal Menambahkan Jabatan Karena Request Tidak Ada"
+                );
+
                 return response;
             }
 
@@ -64,18 +73,39 @@ namespace BigioHrServices.Controllers
             {
                 response.isSuccess = false;
                 response.Message = RequestNull;
+
+                _auditLogService.CreateLog(
+                   "Jabatan",
+                   "Edit",
+                   "Gagal Mengedit Jabatan Karena Request Tidak Ada"
+                );
+
                 return response;
             }
             else if (data == null)
             {
                 response.isSuccess = false;
                 response.Message = "Code Tidak Ditemukan";
+
+                _auditLogService.CreateLog(
+                   "Jabatan",
+                   "Edit",
+                   "Gagal Mengedit Jabatan Karena Code Tidak Ditemukan"
+                );
+
                 return response;
             }
             else if (data.IsActive == false)
             {
                 response.isSuccess = false;
                 response.Message = "Code Saat ini Non Active";
+
+                _auditLogService.CreateLog(
+                   "Jabatan",
+                   "Edit",
+                   "Gagal Mengedit Jabatan Karena Code Saat ini Non Active"
+                );
+
                 return response;
             }
 
@@ -96,18 +126,39 @@ namespace BigioHrServices.Controllers
             {
                 response.isSuccess = false;
                 response.Message = RequestNull;
+
+                _auditLogService.CreateLog(
+                   "Jabatan",
+                   "Nonactive",
+                   "Gagal Nonactive Jabatan Karena Request Tidak Ada"
+                );
+
                 return response;
             }
             else if (data == null)
             {
                 response.isSuccess = false;
                 response.Message = "Code Tidak Ditemukan";
+
+                _auditLogService.CreateLog(
+                   "Jabatan",
+                   "Nonactive",
+                   "Gagal Nonactive Jabatan Karena Code Tidak Ditemukan"
+                );
+
                 return response;
             }
             else if (data.IsActive == false)
             {
                 response.isSuccess = false;
                 response.Message = "Code Telah Non Active";
+
+                _auditLogService.CreateLog(
+                   "Jabatan",
+                   "Nonactive",
+                   "Gagal Nonactive Jabatan Karena Code Telah Non Active"
+                );
+
                 return response;
             }
 
