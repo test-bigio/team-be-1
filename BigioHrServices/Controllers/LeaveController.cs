@@ -87,16 +87,16 @@ namespace BigioHrServices.Controllers
             request.Page = request.Page <= 0 ? 1 : request.Page;
             request.PageSize = request.PageSize <= 0 ? 10 : request.PageSize;
 
-      return _leaveService.GetLeaveHistory(id, request);
-    }
+            return _leaveService.GetLeaveHistory(id, request);
+        }
 
-    [HttpGet("/requests")]
-    public DatatableResponse ListRequests([FromQuery] LeaveSearchRequest request)
-    {
-        request.Page = request.Page <= 0 ? 1 : request.Page;
-        request.PageSize = request.PageSize <= 0 ? 10 : request.PageSize;
-        
-        return _leaveService.GetList(request);
+        [HttpGet("requests")]
+        public DatatableResponse ListRequests([FromQuery] LeaveSearchRequest request)
+        {
+            request.Page = request.Page <= 0 ? 1 : request.Page;
+            request.PageSize = request.PageSize <= 0 ? 10 : request.PageSize;
+            
+            return _leaveService.GetList(request);
+        }
     }
-  }
 }
