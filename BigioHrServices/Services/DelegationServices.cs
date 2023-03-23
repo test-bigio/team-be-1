@@ -15,6 +15,7 @@ namespace BigioHrServices.Services
         public DatatableResponse GetList(DelegationSearchRequest request);
         public DelegationDetailResponse GetDetailDelegation(string nik);
         public void DelegationAdd(DelegationAddRequest request);
+        public void DelegationUpdate(int id, DelegationUpdateRequest request);
     }
 
     public class DelegationServices : IDelegationService
@@ -57,7 +58,7 @@ namespace BigioHrServices.Services
                     BackupCount = g.Count
                 })
                 .ToList();
-
+            
             _auditLogService.CreateLog(
                 "Delegation",
                 "List",
@@ -192,6 +193,74 @@ namespace BigioHrServices.Services
             }
         }
 
+        public void DelegationUpdate(int id, DelegationUpdateRequest request)
+        {
+            //if (data != null) throw new Exception("NIK sudah ada!");
+            var data = _db.Delegations.SingleOrDefault(p => p.Id == id);
+            if (data != null)
+            {
+                var dataEmployeeBackup = _db.Employees
+                    .Where(p => p.NIK == request.NIK)
+                    .FirstOrDefault();
+
+                if (dataEmployeeBackup == null) {
+                    _auditLogService.CreateLog(
+                        "Delegation",
+                        "Update",
+                        "NIK Backup "+request.NIK+" tidak ditemukan."
+                    );
+                    throw new Exception("NIK Backup "+request.NIK+" tidak ditemukan.");
+                }
+
+                var dataNIKBackup = _db.Delegations
+                    .Where(p => p.NIK == request.NIK)
+                    .AsNoTracking()
+                    .ToList();
+
+                if (dataNIKBackup.Count >= 2) {
+                    _auditLogService.CreateLog(
+                        "Delegation",
+                        "Update",
+                        "NIK "+request.NIK+" sudah jadi 2 backup pegawai."
+                    );
+                    throw new Exception("NIK "+request.NIK+" sudah jadi 2 backup pegawai.");
+                }
+
+                try
+                {
+                    data.NIK = request.NIK;
+                    data.Priority = request.Priority;
+                    _db.SaveChanges();
+
+                    _auditLogService.CreateLog(
+                          "Delegation",
+                          "Update",
+                          "Sukses Update"
+                      );
+                }
+                catch (Exception ex)
+                {
+                    _auditLogService.CreateLog(
+                         "Delegation",
+                          "Update",
+                          "Gagal Update"
+                      );
+                    throw ex;
+
+
+                }
+            }
+            else
+            {
+                _auditLogService.CreateLog(
+                         "Pegawai",
+                          "Update",
+                          "NIK tidak ditemukan"
+                      );
+                throw new Exception("NIK tidak ditemukan");
+            }
+
+        }
     }
 }
 
