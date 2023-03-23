@@ -1,5 +1,7 @@
+using System.Text.Json.Serialization;
 namespace BigioHrServices.Model.Leave
 {
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum SortBy
     {
         CreatedAt,
