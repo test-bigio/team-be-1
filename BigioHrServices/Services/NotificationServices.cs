@@ -83,12 +83,14 @@ namespace BigioHrServices.Services
             }
             if (!string.IsNullOrEmpty(request.StartDate))
             {
-                query = query.Where(p => p.CreatedDate > DateTime.ParseExact(request.StartDate, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
+                DateTime startDate = DateTime.ParseExact(request.StartDate, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                query = query.Where(p => p.CreatedDate > startDate);
             }
 
             if (!string.IsNullOrEmpty(request.EndDate))
             {
-                query = query.Where(p => p.CreatedDate < DateTime.ParseExact(request.EndDate, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
+                DateTime endDate = DateTime.ParseExact(request.EndDate, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                query = query.Where(p => p.CreatedDate < endDate);
             }
 
             var data = query
