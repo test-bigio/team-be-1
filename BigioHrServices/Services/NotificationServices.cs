@@ -16,8 +16,8 @@ namespace BigioHrServices.Services
 {
     public interface INotificationService
     {
-        public DatatableResponse GetListNotification(NotificationGetRequest request);
-        public DatatableResponse GetListNotificationByEmployeeId(NotificationGetRequest request, string nik);
+        public Pageable<NotificationResponse> GetListNotification(NotificationGetRequest request);
+        public Pageable<NotificationResponse> GetListNotificationByEmployeeId(NotificationGetRequest request, string nik);
         public void UpdateStatusNotification(int id);
         public NotificationResponse GetDetailNotification(int id);
         public void CreateNotification(NotificationAddRequest request);
@@ -31,7 +31,7 @@ namespace BigioHrServices.Services
             _db = db;
         }
 
-        public DatatableResponse GetListNotification(NotificationGetRequest request)
+        public Pageable<NotificationResponse> GetListNotification(NotificationGetRequest request)
         {            
             var query = _db.Notifications
                 .AsNoTracking()
@@ -59,6 +59,7 @@ namespace BigioHrServices.Services
                 .Select(_notification => new NotificationResponse
                 {
                     Id = _notification.Id,
+                    Nik = _notification.Nik,
                     Title = _notification.Title,
                     Body = _notification.Body,
                     IsRead = _notification.IsRead,
@@ -68,19 +69,10 @@ namespace BigioHrServices.Services
                 .OrderByDescending(_notification => _notification.CreatedDate)
                 .ToList();
 
-            return new DatatableResponse()
-            {
-                Data = data.Skip(request.Page * request.PageSize)
-                    .Take(request.PageSize)
-                    .ToList(),
-                TotalRecords = data.Count,
-                PageSize = request.PageSize > data.Count ? data.Count : request.PageSize,
-                NextPage = (request.PageSize * request.Page) < data.Count,
-                PrevPage = request.Page > 1,
-            };
+            return new Pageable<NotificationResponse>(data, request.Page, request.PageSize);
         }
 
-        public DatatableResponse GetListNotificationByEmployeeId(NotificationGetRequest request, string nik)
+        public Pageable<NotificationResponse> GetListNotificationByEmployeeId(NotificationGetRequest request, string nik)
         {
             var query = _db.Notifications
                 .Where(p => p.Nik == nik)
@@ -105,6 +97,7 @@ namespace BigioHrServices.Services
                 .Select(_notification => new NotificationResponse
                 {
                     Id = _notification.Id,
+                    Nik = _notification.Nik,
                     Title = _notification.Title,
                     Body = _notification.Body,
                     IsRead = _notification.IsRead,
@@ -114,16 +107,7 @@ namespace BigioHrServices.Services
                 .OrderByDescending(_notification => _notification.CreatedDate)
                 .ToList();
 
-            return new DatatableResponse()
-            {
-                Data = data.Skip(request.Page * request.PageSize)
-                    .Take(request.PageSize)
-                    .ToList(),
-                TotalRecords = data.Count,
-                PageSize = request.PageSize > data.Count ? data.Count : request.PageSize,
-                NextPage = (request.PageSize * request.Page) < data.Count,
-                PrevPage = request.Page > 1,
-            };
+            return new Pageable<NotificationResponse>(data, request.Page, request.PageSize);
         }
 
         public void UpdateStatusNotification(int id)
@@ -146,7 +130,8 @@ namespace BigioHrServices.Services
             var data = _db.Notifications
                  .Select(_notification => new NotificationResponse
                  {
-                     Id = _notification.Id,                   
+                     Id = _notification.Id,
+                     Nik = _notification.Nik,
                      Title = _notification.Title,
                      Body = _notification.Body,
                      IsRead = _notification.IsRead,
