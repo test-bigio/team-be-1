@@ -11,9 +11,17 @@ Api service for Siblue HR department
     ```
     dotnet ef database update
     ```
-
-Then, to start the API, run:
+4. Then, to start the API, run:
     ```
     dotnet run
     ```
 
+## Run this project using docker
+1. Build the docker image
+   ```
+   docker build . -t siblue-hr-service-api:<TAG>
+   ```
+2. Run the docker container
+   ```
+   docker run -p 8080:80 --name bigiohr-test -e ConnectionStrings__DefaultConnection="db connection string" siblue-hr-service-api
+   ```
