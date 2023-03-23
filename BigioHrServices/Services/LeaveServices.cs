@@ -391,7 +391,9 @@ namespace BigioHrServices.Services
 
             return new DatatableResponse()
             {
-                Data = data.ToArray(),
+                Data = data.Skip(request.Page * request.PageSize)
+                    .Take(request.PageSize)
+                    .ToList(),
                 TotalRecords = data.Count,
                 PageSize = request.PageSize > data.Count ? data.Count : request.PageSize,
                 NextPage = (request.PageSize * request.Page) < data.Count,
